@@ -22,7 +22,7 @@ function DoodlesCollection() {
             setError('');
             
             // Fetch CloneX collection from our server
-            const response = await axios.get('http://localhost:3000/api/doodles-collection?limit=50');
+            const response = await axios.get('https://artmagic-backend.onrender.com/api/doodles-collection?limit=50');
             setCloneXNFTs(response.data.tokens || []);
             setCollectionInfo(response.data.collection || null);
         } catch (error) {

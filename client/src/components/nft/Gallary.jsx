@@ -19,7 +19,7 @@ function Gallery({ showSearch, setShowSearch }) {
         try {
             setLoading(true);
             setError('');
-            let url = 'http://localhost:3000/api/nfts?limit=12';
+            let url = 'https://artmagic-backend.onrender.com/api/nfts?limit=12';
             if (searchName) url += `&name=${encodeURIComponent(searchName)}`;
             if (searchSlug) url += `&slug=${encodeURIComponent(searchSlug)}`;
             
@@ -38,7 +38,7 @@ function Gallery({ showSearch, setShowSearch }) {
             setLoadingTokens(true);
             setSelectedCollection(collectionName);
             setTokens([]);
-            const response = await axios.get(`http://localhost:3000/api/nfts/${collectionId}/tokens?limit=8`);
+            const response = await axios.get(`https://artmagic-backend.onrender.com/api/nfts/${collectionId}/tokens?limit=8`);
             setTokens(response.data.tokens);
         } catch (error) {
             console.error('Error fetching NFT tokens:', error);
