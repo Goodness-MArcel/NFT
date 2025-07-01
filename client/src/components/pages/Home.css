@@ -465,7 +465,7 @@ body {
     top: 100%;
     left: 0;
     width: 100%;
-    background: rgba(15, 23, 42, 0.95);
+    /* background: rgba(15, 23, 42, 0.95); */
     backdrop-filter: blur(20px);
     flex-direction: column;
     padding: 2rem;
