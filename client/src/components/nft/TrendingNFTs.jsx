@@ -24,7 +24,7 @@ function TrendingNFTs() {
             setError('');
             
             // Fetch trending collections from our server
-            const response = await axios.get('http://localhost:3000/api/trending-nfts?limit=20');
+            const response = await axios.get('https://artmagic-backend.onrender.com/api/trending-nfts?limit=20');
             setTrendingNFTs(response.data.tokens || []);
         } catch (error) {
             console.error('Error fetching trending NFTs:', error);
