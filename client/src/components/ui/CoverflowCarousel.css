@@ -1,0 +1,437 @@
+    /* Add this to the existing CSS file */
+
+.nft-slide {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.nft-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.nft-creator {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+.carousel-info {
+  position: absolute;
+  bottom: 1rem;
+  right: 2rem;
+  z-index: 30;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.slide-counter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.current-slide {
+  color: #06b6d4;
+  font-weight: 700;
+}
+
+.slide-separator {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.total-slides {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Enhanced hover effects */
+.swiper-slide:hover .nft-title {
+  transform: translateY(-2px);
+  transition: transform 0.3s ease;
+}
+
+.swiper-slide:hover .nft-price {
+  color: #67e8f9;
+  transition: color 0.3s ease;
+}
+
+/* Improved mobile responsiveness for carousel info */
+@media (max-width: 768px) {
+  .carousel-info {
+    bottom: 0.5rem;
+    right: 1rem;
+    padding: 0.4rem 0.8rem;
+  }
+  
+  .slide-counter {
+    font-size: 0.8rem;
+  }
+  
+  .nft-details {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .nft-creator {
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .carousel-info {
+    display: none;
+  }
+}
+
+/* Accessibility improvements */
+.swiper-slide:focus {
+  outline: 2px solid #06b6d4;
+  outline-offset: 2px;
+}
+
+.swiper-button-next:focus,
+.swiper-button-prev:focus {
+  outline: 2px solid #06b6d4;
+  outline-offset: 2px;
+}
+
+/* Performance optimizations */
+.nft-slide,
+.nft-card-overlay {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Additional animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.nft-card-overlay {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Gradient borders for premium feel */
+.swiper-slide::before {
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.2) 0%,
+    rgba(236, 72, 153, 0.2) 25%,
+    rgba(6, 182, 212, 0.2) 50%,
+    rgba(168, 85, 247, 0.2) 75%,
+    rgba(99, 102, 241, 0.2) 100%
+  );
+}
+
+    
+
+    /* start */
+    .carousel-container {
+      width: 100%;
+      height: 60vh;
+      position: relative;
+      overflow: hidden;
+      background: transparent;
+    }
+
+    .carousel {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      z-index: 20;
+    }
+
+    .mySwiper {
+      width: 100%;
+      height: 100%;
+      padding: 2rem 0;
+      position: relative;
+    }
+
+    .swiper-slide {
+      background-position: center;
+      background-size: cover;
+      width: 280px;
+      height: 350px;
+      border-radius: 24px;
+      overflow: hidden;
+      position: relative;
+      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      cursor: pointer;
+    }
+
+    .swiper-slide::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        135deg,
+        rgba(99, 102, 241, 0.1) 0%,
+        rgba(236, 72, 153, 0.1) 50%,
+        rgba(6, 182, 212, 0.1) 100%
+      );
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .swiper-slide:hover::before {
+      opacity: 1;
+    }
+
+    .swiper-slide::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      box-shadow: 
+        0 25px 50px -12px rgba(0, 0, 0, 0.25),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      z-index: 2;
+      transition: all 0.4s ease;
+    }
+
+    .swiper-slide:hover::after {
+      box-shadow: 
+        0 35px 60px -12px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.2);
+    }
+
+    .swiper-slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+      position: relative;
+      z-index: 0;
+    }
+
+    .swiper-slide:hover img {
+      transform: scale(1.05);
+    }
+
+    .swiper-slide-active {
+      transform: scale(1.1);
+      z-index: 10;
+    }
+
+    .swiper-slide-active::after {
+      box-shadow: 
+        0 40px 70px -12px rgba(0, 0, 0, 0.5),
+        0 0 0 2px rgba(255, 255, 255, 0.3);
+    }
+
+    /* NFT Card Overlay */
+    .nft-card-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.8) 0%,
+        rgba(0, 0, 0, 0.4) 50%,
+        transparent 100%
+      );
+      padding: 1.5rem;
+      z-index: 3;
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+    }
+
+    .swiper-slide:hover .nft-card-overlay {
+      transform: translateY(0);
+    }
+
+    .nft-title {
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .nft-price {
+      color: #06b6d4;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    /* Custom Swiper Navigation */
+    .swiper-button-next,
+    .swiper-button-prev {
+      width: 50px;
+      height: 50px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 50%;
+      color: white !important;
+      font-size: 18px !important;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .swiper-button-next:hover,
+    .swiper-button-prev:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.1);
+    }
+
+    .swiper-button-next::after,
+    .swiper-button-prev::after {
+      font-size: 16px;
+    }
+
+    /* Custom Pagination */
+    .swiper-pagination-bullet {
+      width: 12px;
+      height: 12px;
+      background: rgba(255, 255, 255, 0.3);
+      opacity: 1;
+      transition: all 0.3s ease;
+    }
+
+    .swiper-pagination-bullet-active {
+      background: white;
+      transform: scale(1.2);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+      .swiper-slide {
+        width: 260px;
+        height: 320px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .carousel-container {
+        height: 50vh;
+      }
+  
+      .swiper-slide {
+        width: 220px;
+        height: 280px;
+        border-radius: 20px;
+      }
+  
+      .mySwiper {
+        padding: 1rem 0;
+      }
+  
+      .swiper-button-next,
+      .swiper-button-prev {
+        width: 40px;
+        height: 40px;
+        font-size: 14px !important;
+      }
+  
+      .nft-card-overlay {
+        padding: 1rem;
+      }
+  
+      .nft-title {
+        font-size: 1rem;
+      }
+  
+      .nft-price {
+        font-size: 0.8rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .carousel-container {
+        height: 45vh;
+      }
+  
+      .swiper-slide {
+        width: 180px;
+        height: 240px;
+        border-radius: 16px;
+      }
+  
+      .swiper-button-next,
+      .swiper-button-prev {
+        display: none;
+      }
+    }
+
+   @media (max-width: 360px) {
+  .swiper-slide {
+    width: 160px;
+    height: 220px;
+  }
+  
+  .carousel-container {
+    height: 40vh;
+  }
+}
+
+/* Loading Animation */
+.carousel-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top: 3px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Glowing effect for active slide */
+.swiper-slide-active {
+  box-shadow: 
+    0 0 30px rgba(99, 102, 241, 0.3),
+    0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Smooth transitions */
+.swiper-slide,
+.swiper-slide img,
+.nft-card-overlay {
+  will-change: transform;
+}
+
+/* Performance optimizations */
+.mySwiper {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
