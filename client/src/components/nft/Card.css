@@ -1,0 +1,110 @@
+.card-container {
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+}
+
+.server-status-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    padding: 32px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    border: 1px solid #e5e7eb;
+}
+
+.server-status-card h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 24px 0;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    color: #6b7280;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f3f4f6;
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading p {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: #dc2626;
+}
+
+.error-icon {
+    width: 48px;
+    height: 48px;
+}
+
+.error p {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.success {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: #059669;
+}
+
+.success-icon {
+    width: 48px;
+    height: 48px;
+}
+
+.success p {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+@media (max-width: 480px) {
+    .card-container {
+        padding: 16px;
+    }
+    
+    .server-status-card {
+        padding: 24px;
+    }
+    
+    .server-status-card h2 {
+        font-size: 1.25rem;
+    }
+}
