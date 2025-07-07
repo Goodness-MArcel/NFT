@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate, Link } from 'react-router-dom';
+// const API_BASE = import.meta.env.VITE_API_BASE_URL;
+
 import './Register.css';
 
 function Register() {
@@ -20,7 +22,7 @@ function Register() {
     e.preventDefault();
 
     if (!username.trim()) return setError("Username is required");
-    if (username.length < 3) return setError("Username must be at least 3 characters long");
+    if (username.length < 3) return setError("Username must be at least 3 characters");
     if (password.length < 6) return setError("Password must be at least 6 characters");
     if (password !== confirmPassword) return setError("Passwords do not match");
 
@@ -29,6 +31,7 @@ function Register() {
       setLoading(true);
       await signup(email, password, username);
       navigate('/login');
+      
     } catch (err) {
       setError(err.message);
     } finally {
@@ -43,7 +46,7 @@ function Register() {
           <h2>Create Account</h2>
           <p>Join us today and get started</p>
         </div>
-        
+
         {error && (
           <div className="error-message">
             <svg className="error-icon" fill="currentColor" viewBox="0 0 20 20">
@@ -52,116 +55,91 @@ function Register() {
             {error}
           </div>
         )}
-        
+
         <form onSubmit={handleSignup} className="register-form">
+          {/* Username */}
           <div className="form-group">
             <label htmlFor="username">Username</label>
             <div className="input-container">
-              <svg className="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              <input 
+              <input
                 id="username"
                 type="text"
                 value={username}
                 placeholder="Enter your username"
                 onChange={(e) => setUsername(e.target.value)}
-                required 
+                required
                 className="form-input"
                 minLength={3}
               />
             </div>
           </div>
 
+          {/* Email */}
           <div className="form-group">
             <label htmlFor="email">Email Address</label>
             <div className="input-container">
-              <svg className="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-              </svg>
-              <input 
+              <input
                 id="email"
                 type="email"
                 value={email}
                 placeholder="Enter your email"
                 onChange={(e) => setEmail(e.target.value)}
-                required 
+                required
                 className="form-input"
               />
             </div>
           </div>
 
+          {/* Password */}
           <div className="form-group">
             <label htmlFor="password">Password</label>
             <div className="input-container">
-              <svg className="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-              <input 
+              <input
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
                 value={password}
-                required
                 onChange={(e) => setPassword(e.target.value)}
                 className="form-input"
                 minLength={6}
+                required
               />
               <button
                 type="button"
                 className="password-toggle"
                 onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? (
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                  </svg>
-                ) : (
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                )}
+                {showPassword ? "Hide" : "Show"}
               </button>
             </div>
           </div>
 
+          {/* Confirm Password */}
           <div className="form-group">
             <label htmlFor="confirmPassword">Confirm Password</label>
             <div className="input-container">
-              <svg className="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <input 
+              <input
                 id="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="Confirm your password"
                 value={confirmPassword}
-                required
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="form-input"
+                required
               />
               <button
                 type="button"
                 className="password-toggle"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               >
-                {showConfirmPassword ? (
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                  </svg>
-                ) : (
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                )}
+                {showConfirmPassword ? "Hide" : "Show"}
               </button>
             </div>
           </div>
 
+          {/* Submit Button */}
           <button type="submit" disabled={loading} className="register-button">
-                        {loading ? (
+            {loading ? (
               <div className="loading-spinner">
                 <svg className="spinner" viewBox="0 0 50 50">
                   <circle className="path" cx="25" cy="25" r="20" fill="none" stroke="currentColor" strokeWidth="5" />
@@ -173,7 +151,7 @@ function Register() {
             )}
           </button>
         </form>
-        
+
         <div className="register-footer">
           <p>Already have an account? <Link to="/login">Sign in</Link></p>
         </div>
@@ -183,6 +161,3 @@ function Register() {
 }
 
 export default Register;
-
-
-

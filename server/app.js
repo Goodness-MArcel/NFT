@@ -1,7 +1,15 @@
 import express from 'express';
+import dotenv from 'dotenv/config';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import fetch from 'node-fetch';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import nftsRouter from './routes/nfts.js';
+import usersRouter from './routes/users.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -36,6 +44,15 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+app.use('/api/users', usersRouter);
+app.use('/api/nfts', nftsRouter);
+
+// Rest of your existing code...
+
 
 
 // Basic route for testing

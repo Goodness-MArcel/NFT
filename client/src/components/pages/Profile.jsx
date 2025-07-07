@@ -1,57 +1,46 @@
-import React, { useState, useRef, useEffect } from 'react';
-import './Profile.css';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import { useAuth } from '../../context/AuthContext';
-import { db, checkNetworkStatus } from '../../services/firebase';
-import { 
-  collection, 
-  addDoc, 
-  serverTimestamp, 
-  query, 
-  where, 
-  getDocs, 
-  orderBy,
-  doc,
-  updateDoc,
-  getDoc,
-  setDoc
-} from 'firebase/firestore';
-import { uploadImageToStorage, deleteImageFromStorage } from '../../utils/imageUpload';
+import React, { useState, useRef, useEffect } from "react";
+import "./Profile.css";
+import "bootstrap/dist/css/bootstrap.min.css";
+import { useAuth } from "../../context/AuthContext";
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 function ProfilePage() {
   const { currentUser } = useAuth();
   const [nfts, setNfts] = useState([]);
   const [newNft, setNewNft] = useState({
-    title: '',
-    description: '',
-    price: '',
+    title: "",
+    description: "",
+    price: "",
     image: null,
-    category: 'Art'
+    imagePreview: null,
+    category: "Art",
   });
+
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
   const [userProfile, setUserProfile] = useState({
-    name: currentUser?.displayName || currentUser?.email?.split('@')[0] || 'User',
-    username: currentUser?.email?.split('@')[0] || 'user',
-    bio: '',
+    name:
+      currentUser?.displayName || currentUser?.email?.split("@")[0] || "User",
+    username: currentUser?.email?.split("@")[0] || "user",
+    bio: "",
     avatar: null,
-    coverImage: null,
-    location: '',
-    website: '',
-    twitter: '',
-    instagram: ''
+    cover_image: null,
+    location: "",
+    website: "",
+    twitter: "",
+    instagram: "",
   });
+
   const [editProfile, setEditProfile] = useState({});
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  console.log(userProfile);
   const fileInputRef = useRef(null);
   const avatarInputRef = useRef(null);
   const coverInputRef = useRef(null);
 
-  // Load user profile and NFTs on component mount
   useEffect(() => {
     if (currentUser) {
       loadUserProfile();
@@ -61,161 +50,136 @@ function ProfilePage() {
 
   const loadUserProfile = async () => {
     try {
-      const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        setUserProfile(prev => ({
-          ...prev,
-          ...userData
-        }));
-      }
+      const res = await fetch(
+        `${API_BASE}/api/users/${currentUser.uid}`
+      );
+      if (!res.ok) throw new Error("Could not load profile");
+      const data = await res.json();
+      setUserProfile((prev) => ({ ...prev, ...data }));
     } catch (err) {
-      console.error("Error loading user profile:", err);
+      console.error("Error loading profile:", err);
+      setError("Failed to load profile.");
     }
   };
-// 'sPtRjUpDzKMnSmkIMwxBiX7Wzi63'
+
   const loadUserNfts = async () => {
     try {
-      if (!checkNetworkStatus()) {
-        setError("No internet connection. Please check your network.");
-        return;
-      }
-
-      const q = query(
-        collection(db, "nfts"), 
-        where("owner", "==", currentUser.uid),
-        orderBy("createdAt", "desc")
+      const res = await fetch(
+        `${API_BASE}/api/nfts?owner=${currentUser.uid}`
       );
-
-      
-      const querySnapshot = await getDocs(q);
-      const userNfts = [];
-      console.log("Fetched NFTs:", querySnapshot);
-      querySnapshot.forEach((doc) => {
-        userNfts.push({ id: doc.id, ...doc.data() });
-      });
-      
-      setNfts(userNfts);
+      if (!res.ok) throw new Error("Could not load NFTs");
+      const data = await res.json();
+      setNfts(data);
     } catch (err) {
-  console.error("Error loading NFTs:", err.message || err.code || err);
-  setError(`Failed to load your NFTs. Reason: ${err.message || err.code || err}`);
-}
+      console.error("Error loading NFTs:", err);
+      setError("Failed to load NFTs.");
+    }
   };
 
-  const handleImageUpload = async (event, type = 'nft') => {
+  const handleImageUpload = async (event, type = "avatar") => {
     const file = event.target.files[0];
     if (!file) return;
+    if (file.size > 10 * 1024 * 1024) return setError("Max file size is 10MB.");
+    if (!file.type.startsWith("image/"))
+      return setError("Invalid image format.");
 
-    // Validate file
-    if (file.size > 10 * 1024 * 1024) { // 10MB limit
-      setError("File size must be less than 10MB");
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("type", type);
+    formData.append("uid", currentUser.uid);
+
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_BASE}/api/users/upload-image`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) throw new Error("Upload failed");
+      const data = await res.json();
+
+      const fieldName = type === "cover" ? "cover_image" : type;
+      setUserProfile((prev) => ({ ...prev, [fieldName]: data.url }));
+      setSuccess(
+        `${type === "avatar" ? "Profile picture" : "Cover image"} updated!`
+      );
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      console.error("Upload error:", err.message);
+      setError("Image upload failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleNftImageSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Image too large (max 10MB)");
       return;
     }
 
-    if (!file.type.startsWith('image/')) {
-      setError("Please select a valid image file");
+    if (!file.type.startsWith("image/")) {
+      setError("Only image files are allowed");
       return;
     }
 
-    if (type === 'nft') {
-      // For NFT upload, just show preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setNewNft(prev => ({ ...prev, image: file, imagePreview: e.target.result }));
-      };
-      reader.readAsDataURL(file);
-    } else {
-      // For profile images, upload immediately
-      try {
-        setLoading(true);
-        setUploadProgress(0);
-        
-        const uploadResult = await uploadImageToStorage(file, `profile/${type}`, currentUser.uid);
-        
-        // Update user profile in Firestore
-        const userRef = doc(db, "users", currentUser.uid);
-        const updateData = {
-          [type === 'avatar' ? 'avatar' : 'coverImage']: uploadResult.url,
-          updatedAt: serverTimestamp()
-        };
-        
-        await updateDoc(userRef, updateData);
-        
-        // Update local state
-        setUserProfile(prev => ({
-          ...prev,
-          [type === 'avatar' ? 'avatar' : 'coverImage']: uploadResult.url
-        }));
-        
-        setSuccess(`${type === 'avatar' ? 'Profile picture' : 'Cover image'} updated successfully!`);
-        setTimeout(() => setSuccess(''), 3000);
-        
-      } catch (err) {
-        console.error(`Error uploading ${type}:`, err);
-        setError(`Failed to update ${type}. Please try again.`);
-      } finally {
-        setLoading(false);
-        setUploadProgress(0);
-      }
-    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setNewNft((prev) => ({
+        ...prev,
+        image: file,
+        imagePreview: reader.result,
+      }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleNftUpload = async (e) => {
     e.preventDefault();
-    
-    if (!checkNetworkStatus()) {
-      setError("No internet connection. Please check your network.");
-      return;
-    }
-
     if (!newNft.title || !newNft.image || !newNft.price) {
-      setError("Please fill in all required fields");
+      setError("Fill in all fields");
       return;
     }
 
     try {
       setLoading(true);
-      setError('');
       setUploadProgress(10);
 
-      // Upload image to Firebase Storage
-      const uploadResult = await uploadImageToStorage(newNft.image, 'nfts', currentUser.uid);
-      setUploadProgress(50);
+      const formData = new FormData();
+      formData.append("image", newNft.image);
+      formData.append("title", newNft.title);
+      formData.append("description", newNft.description);
+      formData.append("price", newNft.price);
+      formData.append("category", newNft.category);
+      formData.append("owner", currentUser.uid);
+      formData.append("ownerEmail", currentUser.email);
 
-      // Create NFT document
-      const nft = {
-        title: newNft.title.trim(),
-        image: uploadResult.url,
-        imagePath: uploadResult.path, // Store path for potential deletion
-        price: parseFloat(newNft.price),
-        status: 'Listed',
-        description: newNft.description.trim(),
-        category: newNft.category,
-        createdAt: serverTimestamp(),
-        owner: currentUser.uid,
-        ownerEmail: currentUser.email,
-        fileSize: uploadResult.size
-      };
+      const res = await fetch(`${API_BASE}/api/nfts`, {
+        method: "POST",
+        body: formData,
+      });
 
-      setUploadProgress(80);
-      const docRef = await addDoc(collection(db, "nfts"), nft);
-      const newNftWithId = { ...nft, id: docRef.id };
-      
-      setNfts(prev => [newNftWithId, ...prev]);
-      setNewNft({ title: '', description: '', price: '', image: null, imagePreview: null, category: 'Art' });
+      if (!res.ok) throw new Error("Upload failed");
+      const newItem = await res.json();
+      setNfts((prev) => [newItem, ...prev]);
+
+      setNewNft({
+        title: "",
+        description: "",
+        price: "",
+        image: null,
+        imagePreview: null,
+        category: "Art",
+      });
       setShowUploadModal(false);
       setUploadProgress(100);
-      
-      setSuccess("NFT uploaded successfully!");
-      setTimeout(() => setSuccess(''), 3000);
-      
-      // Reset file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      setSuccess("NFT uploaded!");
+      if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (err) {
-      console.error("Error uploading NFT:", err);
-      setError("Failed to upload NFT. Please try again.");
+      console.error("NFT upload error:", err);
+      setError("NFT upload failed.");
     } finally {
       setLoading(false);
       setUploadProgress(0);
@@ -223,50 +187,35 @@ function ProfilePage() {
   };
 
   const handleProfileUpdate = async (e) => {
-  e.preventDefault();
-
-  try {
-    setLoading(true);
-    setError('');
-
-    const userRef = doc(db, "users", currentUser.uid);
-    const docSnap = await getDoc(userRef);
-
-    const updateData = {
-      name: editProfile.name || '',
-      username: editProfile.username || '',
-      bio: editProfile.bio || '',
-      location: editProfile.location || '',
-      website: editProfile.website || '',
-      twitter: editProfile.twitter || '',
-      instagram: editProfile.instagram || '',
-      updatedAt: serverTimestamp()
-    };
-
-    if (docSnap.exists()) {
-      await updateDoc(userRef, updateData);
-    } else {
-      await setDoc(userRef, {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      const payload = {
         uid: currentUser.uid,
         email: currentUser.email,
-        ...updateData,
-        createdAt: serverTimestamp(),
-      });
+        ...editProfile,
+      };
+      const res = await fetch(
+        `${API_BASE}/api/users/${currentUser.uid}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
+      if (!res.ok) throw new Error("Update failed");
+      const updated = await res.json();
+      setUserProfile((prev) => ({ ...prev, ...updated }));
+      setShowEditProfileModal(false);
+      setSuccess("Profile updated!");
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err) {
+      console.error("Profile update error:", err);
+      setError("Update failed.");
+    } finally {
+      setLoading(false);
     }
-
-    setUserProfile(prev => ({ ...prev, ...updateData }));
-    setShowEditProfileModal(false);
-    setSuccess("Profile updated successfully!");
-    setTimeout(() => setSuccess(''), 3000);
-
-  } catch (err) {
-    console.error("Error updating profile:", err);
-    setError("Failed to update profile. Please try again.");
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   const openEditProfile = () => {
     setEditProfile({ ...userProfile });
@@ -275,45 +224,50 @@ function ProfilePage() {
 
   // Styles
   const profileStyles = {
-    backgroundColor: '#f8f9fa',
-    minHeight: '100vh',
-    fontFamily: "Inter, serif"
+    backgroundColor: "#f8f9fa",
+    minHeight: "100vh",
+    fontFamily: "Inter, serif",
   };
 
   const headerStyles = {
-    background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
-    color: '#ecf0f1',
-    minHeight: '300px',
-    position: 'relative'
+    background: "linear-gradient(135deg, #2c3e50 0%, #34495e 100%)",
+    color: "#ecf0f1",
+    minHeight: "300px",
+    position: "relative",
   };
 
   const cardStyles = {
-    backgroundColor: '#ffffff',
-    border: '1px solid #dee2e6',
-    borderRadius: '12px',
-    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-    transition: 'transform 0.2s ease-in-out',
+    backgroundColor: "#ffffff",
+    border: "1px solid #dee2e6",
+    borderRadius: "12px",
+    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+    transition: "transform 0.2s ease-in-out",
     // padding: '10px'
   };
 
   const buttonPrimaryStyles = {
-    backgroundColor: '#8b4513',
-    borderColor: '#8b4513',
-    color: '#ffffff'
+    backgroundColor: "#8b4513",
+    borderColor: "#8b4513",
+    color: "#ffffff",
   };
 
   const buttonSecondaryStyles = {
-    backgroundColor: '#6c757d',
-    borderColor: '#6c757d',
-    color: '#ffffff'
+    backgroundColor: "#6c757d",
+    borderColor: "#6c757d",
+    color: "#ffffff",
   };
 
   if (!currentUser) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ minHeight: "100vh" }}
+      >
         <div className="text-center">
           <h3>Please log in to view your profile</h3>
-          <a href="/login" className="btn btn-primary">Login</a>
+          <a href="/login" className="btn btn-primary">
+            Login
+          </a>
         </div>
       </div>
     );
@@ -323,25 +277,42 @@ function ProfilePage() {
     <div style={profileStyles}>
       {/* Success/Error Alerts */}
       {error && (
-        <div className="alert alert-danger alert-dismissible fade show m-3" role="alert">
+        <div
+          className="alert alert-danger alert-dismissible fade show m-3"
+          role="alert"
+        >
           {error}
-          <button type="button" className="btn-close" onClick={() => setError('')}></button>
+          <button
+            type="button"
+            className="btn-close"
+            onClick={() => setError("")}
+          ></button>
         </div>
       )}
-      
+
       {success && (
-        <div className="alert alert-success alert-dismissible fade show m-3" role="alert">
+        <div
+          className="alert alert-success alert-dismissible fade show m-3"
+          role="alert"
+        >
           {success}
-          <button type="button" className="btn-close" onClick={() => setSuccess('')}></button>
+          <button
+            type="button"
+            className="btn-close"
+            onClick={() => setSuccess("")}
+          ></button>
         </div>
       )}
 
       {/* Upload Progress */}
       {uploadProgress > 0 && uploadProgress < 100 && (
-        <div className="position-fixed top-0 start-0 w-100" style={{ zIndex: 9999 }}>
-          <div className="progress" style={{ height: '4px' }}>
-            <div 
-              className="progress-bar bg-success" 
+        <div
+          className="position-fixed top-0 start-0 w-100"
+          style={{ zIndex: 9999 }}
+        >
+          <div className="progress" style={{ height: "4px" }}>
+            <div
+              className="progress-bar bg-success"
               style={{ width: `${uploadProgress}%` }}
             ></div>
           </div>
@@ -350,12 +321,19 @@ function ProfilePage() {
 
       {/* Header Section */}
       <div style={headerStyles} className="position-relative">
-                {userProfile.coverImage && (
-          <img 
-            src={userProfile.coverImage} 
-            alt="Cover" 
+        {userProfile.cover_image && (
+          <img
+            src={userProfile.cover_image} // Add server URL
+            alt="Cover"
             className="w-100 h-100 position-absolute"
-            style={{ objectFit: 'cover', opacity: 0.7 }}
+            style={{ objectFit: "cover", opacity: 0.7 }}
+            onError={(e) => {
+              console.error(
+                "Cover image failed to load:",
+                userProfile.cover_image
+              );
+              e.target.style.display = "none";
+            }}
           />
         )}
         <div className="container position-relative" style={{ zIndex: 2 }}>
@@ -364,10 +342,21 @@ function ProfilePage() {
               <div className="d-flex flex-column flex-md-row align-items-center align-items-md-end">
                 <div className="position-relative mb-3 mb-md-0">
                   <img
-                    src={userProfile.avatar || 'https://via.placeholder.com/150x150/8B4513/FFFFFF?text=Avatar'}
+                    src={userProfile.avatar || "/default-avatar.png"}
                     alt="Profile"
                     className="rounded-circle border border-4 border-white"
-                    style={{ width: '150px', height: '150px', objectFit: 'cover' }}
+                    style={{
+                      width: "150px",
+                      height: "150px",
+                      objectFit: "cover",
+                    }}
+                    onError={(e) => {
+                      if (!e.target.dataset.fallback) {
+                        e.target.onerror = null; // prevent re-loop
+                        e.target.src = "/default-avatar.png"; // must be placed in public/
+                        e.target.dataset.fallback = "true";
+                      }
+                    }}
                   />
                   <button
                     className="btn btn-sm position-absolute bottom-0 end-0 rounded-circle"
@@ -428,30 +417,34 @@ function ProfilePage() {
         <div className="row">
           <div className="col-md-3 col-6 mb-3">
             <div className="text-center p-3" style={cardStyles}>
-              <h3 className="mb-1 fw-bold" style={{ color: '#2c3e50' }}>{nfts.length}</h3>
+              <h3 className="mb-1 fw-bold" style={{ color: "#2c3e50" }}>
+                {nfts.length}
+              </h3>
               <p className="mb-0 text-muted">NFTs Created</p>
             </div>
           </div>
           <div className="col-md-3 col-6 mb-3">
             <div className="text-center p-3" style={cardStyles}>
-              <h3 className="mb-1 fw-bold" style={{ color: '#2c3e50' }}>
-                {nfts.reduce((total, nft) => total + (nft.price || 0), 0).toFixed(2)}
+              <h3 className="mb-1 fw-bold" style={{ color: "#2c3e50" }}>
+                {nfts
+                  .reduce((total, nft) => total + parseFloat(nft.price || 0), 0)
+                  .toFixed(2)}
               </h3>
               <p className="mb-0 text-muted">ETH Listed</p>
             </div>
           </div>
           <div className="col-md-3 col-6 mb-3">
             <div className="text-center p-3" style={cardStyles}>
-              <h3 className="mb-1 fw-bold" style={{ color: '#2c3e50' }}>
-                {nfts.filter(nft => nft.status === 'Sold').length}
+              <h3 className="mb-1 fw-bold" style={{ color: "#2c3e50" }}>
+                {nfts.filter((nft) => nft.status === "Sold").length}
               </h3>
               <p className="mb-0 text-muted">NFTs Sold</p>
             </div>
           </div>
           <div className="col-md-3 col-6 mb-3">
             <div className="text-center p-3" style={cardStyles}>
-              <h3 className="mb-1 fw-bold" style={{ color: '#2c3e50' }}>
-                {nfts.filter(nft => nft.status === 'Listed').length}
+              <h3 className="mb-1 fw-bold" style={{ color: "#2c3e50" }}>
+                {nfts.filter((nft) => nft.status === "Listed").length}
               </h3>
               <p className="mb-0 text-muted">Active Listings</p>
             </div>
@@ -464,20 +457,33 @@ function ProfilePage() {
         <div className="row">
           <div className="col-12">
             <div className="d-flex justify-content-between align-items-center mb-4">
-              <h2 className="fw-bold" style={{ color: '#2c3e50' }}>My NFT Collection</h2>
+              <h2 className="fw-bold" style={{ color: "#2c3e50" }}>
+                My NFT Collection
+              </h2>
               <div className="btn-group" role="group">
-                <button type="button" className="btn btn-outline-secondary active">All</button>
-                <button type="button" className="btn btn-outline-secondary">Listed</button>
-                <button type="button" className="btn btn-outline-secondary">Sold</button>
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary active"
+                >
+                  All
+                </button>
+                <button type="button" className="btn btn-outline-secondary">
+                  Listed
+                </button>
+                <button type="button" className="btn btn-outline-secondary">
+                  Sold
+                </button>
               </div>
             </div>
-            
+
             <div className="row">
               {nfts.length === 0 ? (
                 <div className="col-12 text-center py-5">
                   <i className="fas fa-images fa-3x text-muted mb-3"></i>
                   <h4 className="text-muted">No NFTs yet</h4>
-                  <p className="text-muted">Upload your first NFT to get started!</p>
+                  <p className="text-muted">
+                    Upload your first NFT to get started!
+                  </p>
                   <button
                     className="btn"
                     style={buttonPrimaryStyles}
@@ -487,32 +493,55 @@ function ProfilePage() {
                   </button>
                 </div>
               ) : (
-                nfts.map(nft => (
-                  <div key={nft.id} className="col-lg-3 col-md-4 border col-sm-6 mb-4">
-                    <div className="card h-100"  style={cardStyles}>
+                nfts.map((nft) => (
+                  <div
+                    key={nft.id}
+                    className="col-lg-3 col-md-4 border col-sm-6 mb-4"
+                  >
+                    <div className="card h-100" style={cardStyles}>
                       <img
-                        src={nft.image}
+                        src={nft.image_url} // Note: it's image_url from database
                         className="card-img-top"
                         alt={nft.title}
-                        style={{ height: '250px', objectFit: 'cover' }}
-                        crossOrigin='true'
+                        style={{ height: "250px", objectFit: "cover" }}
+                        onError={(e) => {
+                          if (!e.target.dataset.fallback) {
+                            e.target.onerror = null; // prevent re-loop
+                            e.target.src = "/default-avatar.png"; // must be placed in public/
+                            e.target.dataset.fallback = "true";
+                          }
+                        }}
                       />
                       <div className="card-body d-flex flex-column">
-                        <h5 className="card-title fw-bold" style={{ color: '#2c3e50' }}>
+                        <h5
+                          className="card-title fw-bold"
+                          style={{ color: "#2c3e50" }}
+                        >
                           {nft.title}
                         </h5>
                         {nft.description && (
                           <p className="card-text text-muted small">
-                            {nft.description.length > 100 
-                              ? nft.description.substring(0, 100) + '...' 
+                            {nft.description.length > 100
+                              ? nft.description.substring(0, 100) + "..."
                               : nft.description}
                           </p>
                         )}
                         <div className="d-flex justify-content-between align-items-center mt-auto">
-                          <span className="fw-bold" style={{ color: '#8b4513' }}>
+                          <span
+                            className="fw-bold"
+                            style={{ color: "#8b4513" }}
+                          >
                             {nft.price} ETH
                           </span>
-                          <span className={`badge ${nft.status === 'Listed' ? 'bg-success' : nft.status === 'Sold' ? 'bg-primary' : 'bg-secondary'}`}>
+                          <span
+                            className={`badge ${
+                              nft.status === "Listed"
+                                ? "bg-success"
+                                : nft.status === "Sold"
+                                ? "bg-primary"
+                                : "bg-secondary"
+                            }`}
+                          >
                             {nft.status}
                           </span>
                         </div>
@@ -534,11 +563,17 @@ function ProfilePage() {
 
       {/* Edit Profile Modal */}
       {showEditProfileModal && (
-        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+        <div
+          className="modal show d-block"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
           <div className="modal-dialog modal-lg">
             <div className="modal-content" style={cardStyles}>
               <div className="modal-header border-bottom">
-                <h5 className="modal-title fw-bold" style={{ color: '#2c3e50' }}>
+                <h5
+                  className="modal-title fw-bold"
+                  style={{ color: "#2c3e50" }}
+                >
                   Edit Profile
                 </h5>
                 <button
@@ -552,32 +587,53 @@ function ProfilePage() {
                   <div className="row">
                     <div className="col-md-6">
                       <div className="mb-3">
-                        <label className="form-label fw-semibold">Display Name</label>
+                        <label className="form-label fw-semibold">
+                          Display Name
+                        </label>
                         <input
                           type="text"
                           className="form-control"
-                          value={editProfile.name || ''}
-                          onChange={(e) => setEditProfile(prev => ({ ...prev, name: e.target.value }))}
+                          value={editProfile.name || ""}
+                          onChange={(e) =>
+                            setEditProfile((prev) => ({
+                              ...prev,
+                              name: e.target.value,
+                            }))
+                          }
                           disabled={loading}
                         />
                       </div>
                       <div className="mb-3">
-                        <label className="form-label fw-semibold">Username</label>
+                        <label className="form-label fw-semibold">
+                          Username
+                        </label>
                         <input
                           type="text"
                           className="form-control"
-                          value={editProfile.username || ''}
-                          onChange={(e) => setEditProfile(prev => ({ ...prev, username: e.target.value }))}
+                          value={editProfile.username || ""}
+                          onChange={(e) =>
+                            setEditProfile((prev) => ({
+                              ...prev,
+                              username: e.target.value,
+                            }))
+                          }
                           disabled={loading}
                         />
                       </div>
                       <div className="mb-3">
-                        <label className="form-label fw-semibold">Location</label>
+                        <label className="form-label fw-semibold">
+                          Location
+                        </label>
                         <input
                           type="text"
                           className="form-control"
-                          value={editProfile.location || ''}
-                          onChange={(e) => setEditProfile(prev => ({ ...prev, location: e.target.value }))}
+                          value={editProfile.location || ""}
+                          onChange={(e) =>
+                            setEditProfile((prev) => ({
+                              ...prev,
+                              location: e.target.value,
+                            }))
+                          }
                           disabled={loading}
                           placeholder="City, Country"
                         />
@@ -585,34 +641,55 @@ function ProfilePage() {
                     </div>
                     <div className="col-md-6">
                       <div className="mb-3">
-                        <label className="form-label fw-semibold">Website</label>
+                        <label className="form-label fw-semibold">
+                          Website
+                        </label>
                         <input
                           type="url"
                           className="form-control"
-                          value={editProfile.website || ''}
-                          onChange={(e) => setEditProfile(prev => ({ ...prev, website: e.target.value }))}
+                          value={editProfile.website || ""}
+                          onChange={(e) =>
+                            setEditProfile((prev) => ({
+                              ...prev,
+                              website: e.target.value,
+                            }))
+                          }
                           disabled={loading}
                           placeholder="https://yourwebsite.com"
                         />
                       </div>
                       <div className="mb-3">
-                        <label className="form-label fw-semibold">Twitter</label>
+                        <label className="form-label fw-semibold">
+                          Twitter
+                        </label>
                         <input
                           type="text"
                           className="form-control"
-                          value={editProfile.twitter || ''}
-                          onChange={(e) => setEditProfile(prev => ({ ...prev, twitter: e.target.value }))}
+                          value={editProfile.twitter || ""}
+                          onChange={(e) =>
+                            setEditProfile((prev) => ({
+                              ...prev,
+                              twitter: e.target.value,
+                            }))
+                          }
                           disabled={loading}
                           placeholder="@username"
                         />
                       </div>
                       <div className="mb-3">
-                        <label className="form-label fw-semibold">Instagram</label>
+                        <label className="form-label fw-semibold">
+                          Instagram
+                        </label>
                         <input
                           type="text"
                           className="form-control"
-                          value={editProfile.instagram || ''}
-                          onChange={(e) => setEditProfile(prev => ({ ...prev, instagram: e.target.value }))}
+                          value={editProfile.instagram || ""}
+                          onChange={(e) =>
+                            setEditProfile((prev) => ({
+                              ...prev,
+                              instagram: e.target.value,
+                            }))
+                          }
                           disabled={loading}
                           placeholder="@username"
                         />
@@ -624,14 +701,19 @@ function ProfilePage() {
                     <textarea
                       className="form-control"
                       rows="3"
-                      value={editProfile.bio || ''}
-                      onChange={(e) => setEditProfile(prev => ({ ...prev, bio: e.target.value }))}
+                      value={editProfile.bio || ""}
+                      onChange={(e) =>
+                        setEditProfile((prev) => ({
+                          ...prev,
+                          bio: e.target.value,
+                        }))
+                      }
                       disabled={loading}
                       maxLength={200}
                       placeholder="Tell us about yourself..."
                     ></textarea>
                     <small className="text-muted">
-                      {(editProfile.bio || '').length}/200 characters
+                      {(editProfile.bio || "").length}/200 characters
                     </small>
                   </div>
                 </div>
@@ -653,7 +735,10 @@ function ProfilePage() {
                   >
                     {loading ? (
                       <>
-                        <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                        <span
+                          className="spinner-border spinner-border-sm me-2"
+                          role="status"
+                        ></span>
                         Updating...
                       </>
                     ) : (
@@ -671,11 +756,17 @@ function ProfilePage() {
 
       {/* Upload NFT Modal */}
       {showUploadModal && (
-        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+        <div
+          className="modal show d-block"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
           <div className="modal-dialog modal-lg">
             <div className="modal-content" style={cardStyles}>
               <div className="modal-header border-bottom">
-                <h5 className="modal-title fw-bold" style={{ color: '#2c3e50' }}>
+                <h5
+                  className="modal-title fw-bold"
+                  style={{ color: "#2c3e50" }}
+                >
                   Upload New NFT
                 </h5>
                 <button
@@ -690,10 +781,12 @@ function ProfilePage() {
                   <div className="row">
                     <div className="col-md-6">
                       <div className="mb-3">
-                        <label className="form-label fw-semibold">NFT Image *</label>
+                        <label className="form-label fw-semibold">
+                          NFT Image *
+                        </label>
                         <div
                           className="border border-2 border-dashed rounded p-4 text-center"
-                          style={{ minHeight: '200px', cursor: 'pointer' }}
+                          style={{ minHeight: "200px", cursor: "pointer" }}
                           onClick={() => fileInputRef.current?.click()}
                         >
                           {newNft.imagePreview ? (
@@ -701,10 +794,10 @@ function ProfilePage() {
                               src={newNft.imagePreview}
                               alt="Preview"
                               className="img-fluid rounded"
-                              style={{ maxHeight: '180px' }}
+                              style={{ maxHeight: "180px" }}
                             />
                           ) : (
-                                                        <div className="text-muted">
+                            <div className="text-muted">
                               <i className="fas fa-cloud-upload-alt fa-3x mb-3"></i>
                               <p>Click to upload image</p>
                               <small>Max size: 10MB | JPG, PNG, GIF</small>
@@ -715,12 +808,19 @@ function ProfilePage() {
                     </div>
                     <div className="col-md-6">
                       <div className="mb-3">
-                        <label className="form-label fw-semibold">Title *</label>
+                        <label className="form-label fw-semibold">
+                          Title *
+                        </label>
                         <input
                           type="text"
                           className="form-control"
                           value={newNft.title}
-                          onChange={(e) => setNewNft(prev => ({ ...prev, title: e.target.value }))}
+                          onChange={(e) =>
+                            setNewNft((prev) => ({
+                              ...prev,
+                              title: e.target.value,
+                            }))
+                          }
                           required
                           disabled={loading}
                           placeholder="Enter NFT title"
@@ -728,25 +828,39 @@ function ProfilePage() {
                         />
                       </div>
                       <div className="mb-3">
-                        <label className="form-label fw-semibold">Price (ETH) *</label>
+                        <label className="form-label fw-semibold">
+                          Price (ETH) *
+                        </label>
                         <input
                           type="number"
                           step="0.001"
                           min="0"
                           className="form-control"
                           value={newNft.price}
-                          onChange={(e) => setNewNft(prev => ({ ...prev, price: e.target.value }))}
+                          onChange={(e) =>
+                            setNewNft((prev) => ({
+                              ...prev,
+                              price: e.target.value,
+                            }))
+                          }
                           required
                           disabled={loading}
                           placeholder="0.000"
                         />
                       </div>
                       <div className="mb-3">
-                        <label className="form-label fw-semibold">Category</label>
+                        <label className="form-label fw-semibold">
+                          Category
+                        </label>
                         <select
                           className="form-select"
                           value={newNft.category}
-                          onChange={(e) => setNewNft(prev => ({ ...prev, category: e.target.value }))}
+                          onChange={(e) =>
+                            setNewNft((prev) => ({
+                              ...prev,
+                              category: e.target.value,
+                            }))
+                          }
                           disabled={loading}
                         >
                           <option value="Art">Art</option>
@@ -763,12 +877,19 @@ function ProfilePage() {
                     </div>
                   </div>
                   <div className="mb-3">
-                    <label className="form-label fw-semibold">Description</label>
+                    <label className="form-label fw-semibold">
+                      Description
+                    </label>
                     <textarea
                       className="form-control"
                       rows="4"
                       value={newNft.description}
-                      onChange={(e) => setNewNft(prev => ({ ...prev, description: e.target.value }))}
+                      onChange={(e) =>
+                        setNewNft((prev) => ({
+                          ...prev,
+                          description: e.target.value,
+                        }))
+                      }
                       placeholder="Describe your NFT, its story, and what makes it unique..."
                       disabled={loading}
                       maxLength={1000}
@@ -777,7 +898,7 @@ function ProfilePage() {
                       {newNft.description.length}/1000 characters
                     </small>
                   </div>
-                  
+
                   {/* Upload Progress */}
                   {uploadProgress > 0 && uploadProgress < 100 && (
                     <div className="mb-3">
@@ -786,8 +907,8 @@ function ProfilePage() {
                         <small className="text-muted">{uploadProgress}%</small>
                       </div>
                       <div className="progress">
-                        <div 
-                          className="progress-bar bg-success" 
+                        <div
+                          className="progress-bar bg-success"
                           style={{ width: `${uploadProgress}%` }}
                         ></div>
                       </div>
@@ -808,11 +929,16 @@ function ProfilePage() {
                     type="submit"
                     className="btn"
                     style={buttonPrimaryStyles}
-                    disabled={!newNft.title || !newNft.image || !newNft.price || loading}
+                    disabled={
+                      !newNft.title || !newNft.image || !newNft.price || loading
+                    }
                   >
                     {loading ? (
                       <>
-                        <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                        <span
+                          className="spinner-border spinner-border-sm me-2"
+                          role="status"
+                        ></span>
                         Uploading...
                       </>
                     ) : (
@@ -832,28 +958,26 @@ function ProfilePage() {
       <input
         type="file"
         ref={fileInputRef}
-        onChange={(e) => handleImageUpload(e, 'nft')}
+        onChange={handleNftImageSelect}
         accept="image/*"
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
       />
       <input
         type="file"
         ref={avatarInputRef}
-        onChange={(e) => handleImageUpload(e, 'avatar')}
+        onChange={(e) => handleImageUpload(e, "avatar")}
         accept="image/*"
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
       />
       <input
         type="file"
         ref={coverInputRef}
-        onChange={(e) => handleImageUpload(e, 'cover')}
+        onChange={(e) => handleImageUpload(e, "cover")}
         accept="image/*"
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
       />
     </div>
   );
 }
 
 export default ProfilePage;
-
-

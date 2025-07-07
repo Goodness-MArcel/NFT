@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
-import './Login.css';
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
+import "./Login.css";
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -9,20 +10,38 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (!email || !password) return setError('Please fill in all fields');
+    setError("");
+
+    if (!email || !password) {
+      setError("Please fill in all fields");
+      return;
+    }
 
     try {
-      setError('');
       setLoading(true);
-      await login(email, password);
-      navigate('/profile');
-    } catch (error) {
-      setError(error.message);
+
+      // 1. Login to Firebase
+      const userCredential = await login(email, password);
+      const uid = userCredential.user.uid;
+
+      // 2. Fetch user from PostgreSQL backend
+      const res = await fetch(`${API_BASE}/api/users/${uid}`);
+      if (!res.ok) throw new Error("User not found in database");
+      const userData = await res.json();
+
+      // 3. (Optional) Store user data globally (context/localStorage)
+
+      // 4. Navigate to profile page
+      navigate("/profil");
+
+    } catch (err) {
+      setError(err.message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -104,7 +123,7 @@ function Login() {
                 <svg className="spinner" viewBox="0 0 50 50">
                   <circle className="path" cx="25" cy="25" r="20" fill="none" stroke="currentColor" strokeWidth="5" />
                 </svg>
-                Signing In...
+               Signing In...
               </div>
             ) : (
               'Sign In'
@@ -113,7 +132,7 @@ function Login() {
         </form>
         
         <div className="login-footer">
-          <p>Don't have an account? <Link to="/register">Sign up</Link></p>
+          <p>Don't have an account? <Link to="/signup">Sign up</Link></p>
         </div>
       </div>
     </div>
