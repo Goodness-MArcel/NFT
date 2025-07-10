@@ -6,7 +6,11 @@ import Footer from "../ui/Footer";
 import Card from "../nft/Card";
 import Gallery from "../nft/Gallary";
 import TrendingNFTs from "../nft/TrendingNFTs";
-import DoodlesCollection from "../nft/DoodlesCollection";
+import GamingCollection from "../nft/DoodlesCollection";
+import MembershipNFTs from "../nft/Artnft";
+import ExhibitionNFTs from "../nft/ExhibitionNFTs";
+import Artnft from "../nft/Artnft";
+import PFPCollection from '../nft/PFP';
 import "./Home.css";
 import { Link } from "react-router-dom";
 
@@ -20,20 +24,20 @@ function Home() {
       setShowSearch(!showSearch);
     };
 
-    const toggleMenu = () => {
-      setIsMenuOpen(!isMenuOpen);
-    };
+    // const toggleMenu = () => {
+    //   setIsMenuOpen(!isMenuOpen);
+    // };
 
     // Handle scroll effect for header
-    useEffect(() => {
-      const handleScroll = () => {
-        const isScrolled = window.scrollY > 50;
-        setScrolled(isScrolled);
-      };
+    // useEffect(() => {
+    //   const handleScroll = () => {
+    //     const isScrolled = window.scrollY > 50;
+    //     setScrolled(isScrolled);
+    //   };
 
-      window.addEventListener('scroll', handleScroll);
-      return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+    //   window.addEventListener('scroll', handleScroll);
+    //   return () => window.removeEventListener('scroll', handleScroll);
+    // }, []);
 
     return (
       <>
@@ -123,14 +127,22 @@ function Home() {
         </section>
 
         <section className="doodles-section">
-          <DoodlesCollection />
+          <GamingCollection />
+        </section>
+
+        <section className="doodles-section">
+          <Artnft />
+        </section>
+        
+        <section className="doodles-section">
+          <PFPCollection />
         </section>
       
-        <section className="gallery-section">
+        {/* <section className="gallery-section">
           <div className="container">
             <Gallery showSearch={showSearch} setShowSearch={setShowSearch} />
           </div>
-        </section>
+        </section> */}
 
         <Footer />
       </>

@@ -6,7 +6,7 @@ function Footer() {
       <div className="container">
         <div className="row gy-4">
           {/* Categories  */}
-          <div classNames="col-md-3">
+          <div className="col-md-3">
             <h5 className="fw-bold">Categories</h5>
             <ul className="list-unstyled">
               <li>
@@ -90,7 +90,7 @@ function Footer() {
             <form className="d-flex">
               <input
                 type="email"
-                class="form-control rounded-start"
+                className="form-control rounded-start"
                 placeholder="Email Address"
               />
               <button className="btn btn-light ms-2 rounded-end" type="submit">

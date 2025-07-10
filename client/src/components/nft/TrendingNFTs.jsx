@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination, Autoplay } from 'swiper/modules';
-import axios from 'axios';
-
-// Import Swiper styles
+import { Pagination, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
@@ -22,12 +19,59 @@ function TrendingNFTs() {
         try {
             setLoading(true);
             setError('');
-            
-            // Fetch trending collections from our server
-            const response = await axios.get('https://artmagic-backend.onrender.com/api/trending-nfts?limit=20');
-            setTrendingNFTs(response.data.tokens || []);
-        } catch (error) {
-            console.error('Error fetching trending NFTs:', error);
+            const limit = 20;
+
+            // Fetch trending collections
+            const collectionsRes = await fetch(`https://api.reservoir.tools/collections/v7?limit=${limit}&sortBy=1DayVolume`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'User-Agent': 'NFT-Gallery-App/1.0'
+                }
+            });
+
+            if (!collectionsRes.ok) {
+                throw new Error(`Collections fetch failed with status ${collectionsRes.status}`);
+            }
+
+            const collectionsData = await collectionsRes.json();
+            const collections = collectionsData.collections?.slice(0, 10) || [];
+
+            const trendingTokens = [];
+
+            for (const collection of collections) {
+                try {
+                    const tokensRes = await fetch(`https://api.reservoir.tools/tokens/v7?collection=${collection.id}&limit=2&sortBy=floorAskPrice`, {
+                        headers: {
+                            'Accept': 'application/json',
+                            'User-Agent': 'NFT-Gallery-App/1.0'
+                        }
+                    });
+
+                    if (!tokensRes.ok) continue;
+
+                    const tokensData = await tokensRes.json();
+
+                    const tokens = tokensData.tokens?.map(token => ({
+                        id: token.token?.tokenId,
+                        name: token.token?.name || `${collection.name} #${token.token?.tokenId}`,
+                        image: token.token?.image,
+                        collection: collection.name,
+                        contractAddress: token.token?.contract,
+                        floorPrice: token.market?.floorAsk?.price?.amount?.native,
+                        lastSalePrice: token.market?.lastSale?.price?.amount?.native,
+                        collectionFloor: collection.floorAsk?.price?.amount?.native,
+                        volume: collection.volume?.['1day']
+                    })) || [];
+
+                    trendingTokens.push(...tokens);
+                } catch (tokenErr) {
+                    console.error(`Error fetching tokens for ${collection.id}:`, tokenErr);
+                }
+            }
+
+            setTrendingNFTs(trendingTokens.slice(0, limit));
+        } catch (err) {
+            console.error('Error fetching trending NFTs:', err);
             setError('Failed to load trending NFTs');
         } finally {
             setLoading(false);
@@ -70,41 +114,25 @@ function TrendingNFTs() {
 
     return (
         <div className="trending-container mt-md-5">
-            <h2>🔥 Trending NFTs</h2>
-            <p className="trending-subtitle">Discover the hottest NFTs in the market</p>
-            
+            <h2>Trending NFTs</h2>
+            {/* <p className="trending-subtitle">Discover the hottest NFTs in the market</p> */}
+
             {trendingNFTs.length > 0 ? (
                 <Swiper
-                    modules={[Navigation, Pagination, Autoplay]}
+                    modules={[ Pagination, Autoplay]}
                     spaceBetween={16}
                     slidesPerView={'auto'}
-                    navigation
-                    pagination={{ clickable: true }}
+                    pagination={false}
                     autoplay={{
                         delay: 3000,
                         disableOnInteraction: false,
                     }}
                     breakpoints={{
-                        320: {
-                            slidesPerView: 2,
-                            spaceBetween: 12,
-                        },
-                        480: {
-                            slidesPerView: 3,
-                            spaceBetween: 14,
-                        },
-                        768: {
-                            slidesPerView: 4,
-                            spaceBetween: 16,
-                        },
-                        1024: {
-                            slidesPerView: 5,
-                            spaceBetween: 18,
-                        },
-                        1200: {
-                            slidesPerView: 6,
-                            spaceBetween: 20,
-                        },
+                        320: { slidesPerView: 2, spaceBetween: 12 },
+                        480: { slidesPerView: 3, spaceBetween: 14 },
+                        768: { slidesPerView: 4, spaceBetween: 16 },
+                        1024: { slidesPerView: 5, spaceBetween: 18 },
+                        1200: { slidesPerView: 6, spaceBetween: 20 },
                     }}
                     className="trending-swiper"
                 >
@@ -114,9 +142,9 @@ function TrendingNFTs() {
                                 <div className="nft-rank">#{index + 1}</div>
                                 <div className="nft-image-container">
                                     {nft.image ? (
-                                        <img 
-                                            src={nft.image} 
-                                            alt={nft.name} 
+                                        <img
+                                            src={nft.image}
+                                            alt={nft.name}
                                             className="nft-image"
                                             onError={(e) => {
                                                 e.target.style.display = 'none';
@@ -131,8 +159,8 @@ function TrendingNFTs() {
                                     </div>
                                 </div>
                                 <div className="nft-info">
-                                    <h4 className="nft-name">{nft.name || `Token #${nft.id}`}</h4>
-                                    <p className="nft-collection">{nft.collection || 'Unknown Collection'}</p>
+                                    <h4 className="nft-name">{nft.name}</h4>
+                                    <p className="nft-collection">{nft.collection}</p>
                                     {nft.floorPrice && (
                                         <div className="nft-price">
                                             <span className="price-label">Floor:</span>

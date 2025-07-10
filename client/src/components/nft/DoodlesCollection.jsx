@@ -1,348 +1,213 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import './DoodlesCollection.css';
+import React, { useState, useEffect } from "react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Pagination, Autoplay } from "swiper/modules";
+import { useNavigate } from 'react-router-dom'
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+// import './DoodlesCollection.css';
 
-function DoodlesCollection() {
-    const [cloneXNFTs, setCloneXNFTs] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [collectionInfo, setCollectionInfo] = useState(null);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage] = useState(10);
-    const [selectedNFT, setSelectedNFT] = useState(null);
-    const [showModal, setShowModal] = useState(false);
+function GamingCollection() {
+  const [nfts, setNfts] = useState([]);
+  const [collectionInfo, setCollectionInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-    useEffect(() => {
-        fetchCloneXCollection();
-    }, []);
+  const contractAddress = "0x76be3b62873462d2142405439777e971754e8e77"; // Parallel Alpha
 
-    const fetchCloneXCollection = async () => {
-        try {
-            setLoading(true);
-            setError('');
-            
-            // Fetch CloneX collection from our server
-            const response = await axios.get('https://artmagic-backend.onrender.com/api/doodles-collection?limit=50');
-            setCloneXNFTs(response.data.tokens || []);
-            setCollectionInfo(response.data.collection || null);
-        } catch (error) {
-            console.error('Error fetching CloneX collection:', error);
-            setError('Failed to load CloneX collection');
-        } finally {
-            setLoading(false);
+  useEffect(() => {
+    fetchGamingNFTs();
+  }, []);
+
+  const fetchGamingNFTs = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const collectionRes = await fetch(
+        `https://api.reservoir.tools/collections/v7?id=${contractAddress}`,
+        {
+          headers: {
+            Accept: "application/json",
+            "User-Agent": "Gaming-NFT-Client/1.0",
+          },
         }
-    };
+      );
 
-    // Pagination logic
-    const totalPages = Math.ceil(cloneXNFTs.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentNFTs = cloneXNFTs.slice(startIndex, endIndex);
+      if (!collectionRes.ok) throw new Error("Failed to fetch collection info");
+      const collectionData = await collectionRes.json();
+      const collection = collectionData.collections?.[0];
 
-    const goToPage = (page) => {
-        setCurrentPage(page);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    const goToNextPage = () => {
-        if (currentPage < totalPages) {
-            goToPage(currentPage + 1);
-        }
-    };
-
-    const goToPrevPage = () => {
-        if (currentPage > 1) {
-            goToPage(currentPage - 1);
-        }
-    };
-
-    const formatPrice = (price) => {
-        if (!price) return 'N/A';
-        return `${parseFloat(price).toFixed(3)} ETH`;
-    };
-
-    const formatAddress = (address) => {
-        if (!address) return '';
-        return `${address.slice(0, 6)}...${address.slice(-4)}`;
-    };
-
-    const handleNFTClick = (nft) => {
-        setSelectedNFT(nft);
-        setShowModal(true);
-    };
-
-    const closeModal = () => {
-        setShowModal(false);
-        setSelectedNFT(null);
-    };
-
-    const formatDate = (timestamp) => {
-        if (!timestamp) return 'Unknown';
-        return new Date(timestamp * 1000).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
+      if (collection) {
+        setCollectionInfo({
+          name: collection.name,
+          floorPrice: collection.floorAsk?.price?.amount?.native,
+          totalSupply: collection.tokenCount,
+          ownerCount: collection.ownerCount,
+          volume: collection.volume?.allTime,
         });
-    };
+      }
 
-    if (loading) {
-        return (
-            <div className="doodles-container">
-                <h2>🤖 CloneX (by RTFKT)</h2>
-                <div className="doodles-loading">
-                    <div className="spinner"></div>
-                    <p>Loading CloneX NFTs...</p>
-                </div>
-            </div>
-        );
+      const tokensRes = await fetch(
+        `https://api.reservoir.tools/tokens/v7?collection=${contractAddress}&limit=40&sortBy=tokenId`,
+        {
+          headers: {
+            Accept: "application/json",
+            "User-Agent": "Gaming-NFT-Client/1.0",
+          },
+        }
+      );
+
+      if (!tokensRes.ok) throw new Error("Failed to fetch NFTs");
+      const tokensData = await tokensRes.json();
+
+      const tokens =
+        tokensData.tokens?.map((token) => ({
+          id: token.token?.tokenId,
+          name: token.token?.name,
+          image: token.token?.image,
+          contractAddress: token.token?.contract,
+          floorPrice: token.market?.floorAsk?.price?.amount?.native,
+          lastSalePrice: token.market?.lastSale?.price?.amount?.native,
+          attributes: token.token?.attributes,
+          rarity: token.token?.rarityScore,
+          owner: token.token?.owner,
+        })) || [];
+
+      setNfts(tokens);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load gaming NFTs");
+    } finally {
+      setLoading(false);
     }
+  };
 
-    if (error) {
-        return (
-            <div className="doodles-container">
-                <h2>🤖 CloneX (by RTFKT)</h2>
-                <div className="doodles-error">
-                    <p>{error}</p>
-                    <button onClick={fetchCloneXCollection} className="retry-btn">Try Again</button>
+  const formatPrice = (price) =>
+    price ? `${parseFloat(price).toFixed(3)} ETH` : "N/A";
+
+  return (
+    <div className="doodles-container">
+      {/* <h2 style={{fontWeight: 'bolder'}}> Gaming </h2> */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <h2 style={{ fontWeight: "bolder" }}> Gaming </h2>
+        {!loading && !error && nfts.length > 0 && (
+          <button
+            onClick={() => navigate(`/pfp-grid/${contractAddress}`)}
+            style={{
+              padding: "8px 16px",
+              background: "white",
+              color: "black",
+              border: "thin solid #3182ce",
+              borderRadius: "4px",
+              cursor: "pointer",
+            }}
+          >
+            View All
+          </button>
+        )}
+      </div>
+
+      {/* {collectionInfo && (
+                <div className="collection-stats">
+                    <div><strong>Floor:</strong> {formatPrice(collectionInfo.floorPrice)}</div>
+                    <div><strong>Supply:</strong> {collectionInfo.totalSupply}</div>
+                    <div><strong>Owners:</strong> {collectionInfo.ownerCount}</div>
                 </div>
-            </div>
-        );
-    }
+            )} */}
 
-    return (
-        <div className="doodles-container">
-            <div className="doodles-header">
-                <h2>CloneX</h2>
-                <p className="doodles-subtitle">Next-generation avatars for the metaverse</p>
-                {collectionInfo && (
-                    <div className="collection-stats">
-                        <div className="stat">
-                            <span className="stat-label">Floor Prices:</span>
-                            <span className="stat-value">{formatPrice(collectionInfo.floorPrice)}</span>
-                        </div>
-                        <div className="stat">
-                            <span className="stat-label">Total Supply:</span>
-                            <span className="stat-value">{collectionInfo.totalSupply?.toLocaleString()}</span>
-                        </div>
-                        <div className="stat">
-                            <span className="stat-label">Owners:</span>
-                            <span className="stat-value">{collectionInfo.ownerCount?.toLocaleString()}</span>
-                        </div>
-                    </div>
-                )}
-            </div>
-            
-            {cloneXNFTs.length > 0 ? (
-                <>
-                    <div className="doodles-grid">
-                        {currentNFTs.map((nft, index) => (
-                            <div 
-                                key={nft.id || index} 
-                                className="doodles-nft-card"
-                                onClick={() => handleNFTClick(nft)}
-                            >
-                                <div className="nft-image-container">
-                                    <div className="nft-number">#{nft.id}</div>
-                                    <div className="nft-price-overlay">
-                                        {nft.floorPrice ? (
-                                            <span className="price-overlay">{formatPrice(nft.floorPrice)}</span>
-                                        ) : nft.lastSalePrice ? (
-                                            <span className="price-overlay">{formatPrice(nft.lastSalePrice)}</span>
-                                        ) : (
-                                            <span className="price-overlay">Not Listed</span>
-                                        )}
-                                    </div>
-                                    {nft.image ? (
-                                        <img 
-                                            src={nft.image} 
-                                            alt={nft.name} 
-                                            className="nft-image"
-                                            onError={(e) => {
-                                                e.target.style.display = 'none';
-                                                e.target.nextSibling.style.display = 'flex';
-                                            }}
-                                        />
-                                    ) : null}
-                                    <div className="nft-placeholder" style={{ display: nft.image ? 'none' : 'flex' }}>
-                                        <svg fill="currentColor" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                                        </svg>
-                                    </div>
-                                </div>
-                                <div className="nft-info">
-                                    <h4 className="nft-name">{nft.name || `CloneX #${nft.id}`}</h4>
-                                    {nft.attributes && nft.attributes.length > 0 && (
-                                        <div className="nft-traits">
-                                            {nft.attributes.slice(0, 2).map((attr, idx) => (
-                                                <div key={idx} className="trait">
-                                                    <span className="trait-type">{attr.key}:</span>
-                                                    <span className="trait-value">{attr.value}</span>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    {totalPages > 1 && (
-                        <div className="pagination">
-                            <button 
-                                onClick={goToPrevPage} 
-                                disabled={currentPage === 1}
-                                className="pagination-btn prev-btn"
-                            >
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                                </svg>
-                                Previous
-                            </button>
-
-                            <div className="pagination-numbers">
-                                {[...Array(totalPages)].map((_, index) => {
-                                    const page = index + 1;
-                                    if (
-                                        page === 1 || 
-                                        page === totalPages || 
-                                        (page >= currentPage - 1 && page <= currentPage + 1)
-                                    ) {
-                                        return (
-                                            <button
-                                                key={page}
-                                                onClick={() => goToPage(page)}
-                                                className={`pagination-number ${currentPage === page ? 'active' : ''}`}
-                                            >
-                                                {page}
-                                            </button>
-                                        );
-                                    } else if (
-                                        page === currentPage - 2 || 
-                                        page === currentPage + 2
-                                    ) {
-                                        return <span key={page} className="pagination-ellipsis">...</span>;
-                                    }
-                                    return null;
-                                })}
-                            </div>
-
-                            <button 
-                                onClick={goToNextPage} 
-                                disabled={currentPage === totalPages}
-                                className="pagination-btn next-btn"
-                            >
-                                Next
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                </svg>
-                            </button>
-                        </div>
-                    )}
-                </>
-            ) : (
-                <div className="no-doodles">
-                    <p>No CloneX found</p>
-                </div>
-            )}
-
-            {/* NFT Detail Modal */}
-            {showModal && selectedNFT && (
-                <div className="nft-modal-overlay" onClick={closeModal}>
-                    <div className="nft-modal" onClick={(e) => e.stopPropagation()}>
-                        <button className="modal-close-btn" onClick={closeModal}>
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                        
-                        <div className="modal-content">
-                            <div className="modal-image-section">
-                                {selectedNFT.image ? (
-                                    <img 
-                                        src={selectedNFT.image} 
-                                        alt={selectedNFT.name} 
-                                        className="modal-nft-image"
-                                    />
-                                ) : (
-                                    <div className="modal-no-image">
-                                        <svg fill="currentColor" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                                        </svg>
-                                    </div>
-                                )}
-                            </div>
-                            
-                            <div className="modal-info-section">
-                                <div className="modal-header">
-                                    <h2>{selectedNFT.name || `CloneX #${selectedNFT.id}`}</h2>
-                                    <div className="modal-token-id">Token ID: {selectedNFT.id}</div>
-                                </div>
-                                
-                                <div className="modal-pricing">
-                                    {selectedNFT.floorPrice && (
-                                        <div className="modal-price-item">
-                                            <span className="price-label">Floor Price</span>
-                                            <span className="price-value">{formatPrice(selectedNFT.floorPrice)}</span>
-                                        </div>
-                                    )}
-                                    {selectedNFT.lastSalePrice && (
-                                        <div className="modal-price-item">
-                                            <span className="price-label">Last Sale</span>
-                                            <span className="price-value">{formatPrice(selectedNFT.lastSalePrice)}</span>
-                                        </div>
-                                    )}
-                                    {selectedNFT.rarity && (
-                                        <div className="modal-price-item">
-                                            <span className="price-label">Rarity Score</span>
-                                            <span className="rarity-value">{Math.round(selectedNFT.rarity)}</span>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="modal-details">
-                                    <div className="detail-group">
-                                        <h3>Owner</h3>
-                                        <p>{selectedNFT.owner ? formatAddress(selectedNFT.owner) : 'Unknown'}</p>
-                                    </div>
-                                    
-                                    <div className="detail-group">
-                                        <h3>Contract Address</h3>
-                                        <p>{formatAddress(selectedNFT.contractAddress)}</p>
-                                    </div>
-                                </div>
-
-                                {selectedNFT.attributes && selectedNFT.attributes.length > 0 && (
-                                    <div className="modal-attributes">
-                                        <h3>Attributes</h3>
-                                        <div className="attributes-grid">
-                                            {selectedNFT.attributes.map((attr, index) => (
-                                                <div key={index} className="attribute-item">
-                                                    <div className="attribute-type">{attr.key}</div>
-                                                    <div className="attribute-value">{attr.value}</div>
-                                                    {attr.rarity && (
-                                                        <div className="attribute-rarity">{attr.rarity}% rare</div>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div className="modal-actions">
-                                    <button className="view-opensea-btn">
-                                        View on OpenSea
-                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+      {loading ? (
+        <div className="spinner">Loading NFTs...</div>
+      ) : error ? (
+        <div className="error">
+          <p>{error}</p>
+          <button onClick={fetchGamingNFTs}>Try Again</button>
         </div>
-    );
+      ) : (
+        <Swiper
+          modules={[Pagination, Autoplay]}
+          spaceBetween={16}
+          slidesPerView={"auto"}
+          pagination={false}
+          autoplay={{
+            delay: 3000,
+            disableOnInteraction: false,
+          }}
+          breakpoints={{
+            320: { slidesPerView: 2, spaceBetween: 12 },
+            480: { slidesPerView: 3, spaceBetween: 14 },
+            768: { slidesPerView: 4, spaceBetween: 16 },
+            1024: { slidesPerView: 5, spaceBetween: 18 },
+            1200: { slidesPerView: 6, spaceBetween: 20 },
+          }}
+          className="doodles-swiper"
+        >
+          {nfts.map((nft, index) => (
+            <SwiperSlide key={nft.id || index} className="doodles-slide">
+              <div className="doodles-nft-card">
+                <div className="nft-rank">#{nft.id}</div>
+                <div className="nft-image-container">
+                  {nft.image ? (
+                    <img
+                      src={nft.image}
+                      alt={nft.name}
+                      className="nft-image"
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                        e.target.nextSibling.style.display = "flex";
+                      }}
+                    />
+                  ) : null}
+                  <div
+                    className="nft-placeholder"
+                    style={{ display: nft.image ? "none" : "flex" }}
+                  >
+                    <svg fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fillRule="evenodd"
+                        d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <div className="nft-info">
+                  <h4 className="nft-name">{nft.name}</h4>
+                  <p className="nft-collection">{nft.collection}</p>
+
+                  {/* <div className="nft-rank">#{nft.id}</div>
+                                    <h4 className="nft-name">{nft.name || `Token #${nft.id}`}</h4> */}
+                  {nft.floorPrice && (
+                    <div className="nft-price">
+                      <span className="price-label">Floor:</span>
+                      <span className="price-value">
+                        {formatPrice(nft.floorPrice)}
+                      </span>
+                    </div>
+                  )}
+                  {nft.lastSalePrice && (
+                    <div className="nft-last-sale">
+                      <span className="sale-label">Last Sale:</span>
+                      <span className="sale-value">
+                        {formatPrice(nft.lastSalePrice)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      )}
+    </div>
+  );
 }
 
-export default DoodlesCollection;
+export default GamingCollection;

@@ -8,6 +8,7 @@ const Login = lazy(() => import("./components/auths/Login"));
 const SignUp = lazy(() => import("./components/auths/Register"));
 const ProfilePage = lazy(() => import("./components/pages/Profile"));
 const PrivateRoute = lazy(() => import("./privateRoute.jsx"));
+const  PFPGridPage = lazy(() => import("./components/nft/PFPGridPage"));
 
 const Loading = () => (
   <div className="d-flex justify-content-center align-items-center" style={{ height: "100vh" }}>
@@ -26,6 +27,7 @@ export const App = () => {
             <Route path='/' element={<Home />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/pfp-grid/:contractAddress" element={<PFPGridPage />} />
             <Route
               path="/profile"
               element={
