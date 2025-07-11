@@ -6,6 +6,7 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 // import './DoodlesCollection.css';
+import './TrendingNFTs.css';
 
 function GamingCollection() {
   const [nfts, setNfts] = useState([]);
@@ -88,7 +89,7 @@ function GamingCollection() {
     price ? `${parseFloat(price).toFixed(3)} ETH` : "N/A";
 
   return (
-    <div className="doodles-container">
+    <div className="trending-container border mt-md-5">
       {/* <h2 style={{fontWeight: 'bolder'}}> Gaming </h2> */}
       <div
         style={{
@@ -147,11 +148,11 @@ function GamingCollection() {
             1024: { slidesPerView: 5, spaceBetween: 18 },
             1200: { slidesPerView: 6, spaceBetween: 20 },
           }}
-          className="doodles-swiper"
+          className="trending-swiper"
         >
           {nfts.map((nft, index) => (
-            <SwiperSlide key={nft.id || index} className="doodles-slide">
-              <div className="doodles-nft-card">
+            <SwiperSlide key={nft.id || index} className="trending-slide">
+              <div className="trending-nft-card">
                 <div className="nft-rank">#{nft.id}</div>
                 <div className="nft-image-container">
                   {nft.image ? (

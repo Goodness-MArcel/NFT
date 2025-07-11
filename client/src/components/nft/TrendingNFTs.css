@@ -1,5 +1,63 @@
 @import url("https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap");
 
+ swiper-slide:hover::before {
+  opacity: 1;
+}
+
+/* .swiper-slide {
+  background-position: center;
+  background-size: cover;
+  width: 280px;
+  height: 350px;
+  border-radius: 24px;
+  overflow: hidden;
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  cursor: pointer;
+  will-change: transform;
+  border: 2px solid rgb(83, 0, 128);
+} */
+
+/* .swiper-slide:hover::after {
+  box-shadow: 
+    0 35px 60px -12px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.2); 
+}  */
+
+ .trending-slide::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  z-index: 2;
+  transition: all 0.4s ease;
+} 
+
+.trending-slide::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.1) 0%,
+    rgba(236, 72, 153, 0.1) 50%,
+    rgba(6, 182, 212, 0.1) 100%
+  );
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+
 .trending-container {
     padding: 40px 20px;
     max-width: 1400px;
@@ -20,12 +78,7 @@
     text-align: start;
 }
 
-.trending-subtitle {
-    text-align: start;
-    color: #6b7280;
-    font-size: 1rem;
-    margin: 0 0 32px 0;
-}
+
 
 .trending-loading,
 .trending-error {
@@ -74,18 +127,21 @@
 
 .trending-swiper {
     padding: 20px 0 50px 0;
+    border: thin solid red;
 }
 
 .trending-slide {
     width: 200px !important;
     height: auto;
+    border-radius: 0 !important;
 }
 
 .trending-nft-card {
     background: white;
-    /* border-radius: 16px; */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+    border-radius: 0 !important;
+    /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); */
+    border: 2px solid green;
+    overflow: hidden !important;
     transition: all 0.3s ease;
     position: relative;
     width: 200px;
@@ -117,6 +173,7 @@
     height: 180px;
     position: relative;
     overflow: hidden;
+    border-bottom: 2px solid #1454d3;
 }
 
 .nft-image {
@@ -151,6 +208,8 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    /* border: thick solid #0f44ad; */
+    border-radius: 0 !important;
 }
 
 .nft-name {

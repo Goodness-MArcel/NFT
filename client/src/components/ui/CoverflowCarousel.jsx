@@ -42,7 +42,7 @@ function CoverflowCarousel() {
           slideShadows: false,
         }}
         modules={[EffectCoverflow, Autoplay]}
-        className="mySwiper"
+        className="mySwipers"
         breakpoints={{
           320: {
             slidesPerView: 2,
@@ -91,7 +91,7 @@ function CoverflowCarousel() {
         }}
       >
         {images.map((img, index) => (
-          <SwiperSlide key={index}>
+          <SwiperSlide key={index} className="swiper-slide_coverflow">
             <img src={img} alt={`Slide ${index}`} />
           </SwiperSlide>
         ))}

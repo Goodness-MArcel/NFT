@@ -90,9 +90,9 @@ function PFPGridPage() {
     return (
         <div className="grid-container">
             <div className="grid-header">
-                <button onClick={()=>navigate('/')} className="back-button text-decoration-none">
+                <a href='/' className="back-button text-decoration-none">
                     &larr; Back to Collection
-                </button>
+                </a>
                 <h1>{collectionInfo?.name || 'PFP Collection'}</h1>
                 <div className="collection-stats">
                     <div className="stat-items">

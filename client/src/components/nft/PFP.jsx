@@ -4,6 +4,7 @@ import { Pagination, Autoplay } from "swiper/modules";
 import { useNavigate } from "react-router-dom";
 import "swiper/css";
 import "swiper/css/pagination";
+import './TrendingNFTs.css';
 
 function PFPCollection() {
   const [nfts, setNfts] = useState([]);
@@ -98,7 +99,7 @@ function PFPCollection() {
     price ? `${parseFloat(price).toFixed(3)} ETH` : "N/A";
 
   return (
-    <div className="doodles-container mt-5">
+    <div className="trending-container border mt-md-5">
       <div
         style={{
           display: "flex",
@@ -165,11 +166,11 @@ function PFPCollection() {
               1024: { slidesPerView: 5, spaceBetween: 18 },
               1200: { slidesPerView: 6, spaceBetween: 20 },
             }}
-            className="doodles-swiper"
+            className="trending-swiper"
           >
             {nfts.map((nft, index) => (
               <SwiperSlide key={`${nft.id}-${index}`} className="doodles-slide">
-                <div className="doodles-nft-card">
+                <div className="trending-nft-card">
                   <div className="nft-rank">
                     {nft.rank ? `Rank #${nft.rank}` : `#${nft.id}`}
                   </div>
