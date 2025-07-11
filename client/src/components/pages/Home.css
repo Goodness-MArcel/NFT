@@ -445,11 +445,11 @@ body {
 .trending-section,
 .gallery-section {
   padding: 2rem 0;
-  background: var(--bg-secondary);
+  /* background: var(--bg-secondary); */
 }
 
 .trending-section {
-  background: var(--bg-primary);
+  /* background: var(--bg-primary); */
 }
 
 .container {
@@ -523,7 +523,7 @@ body {
   }
 
   .login-btn::after {
-    content: 'Connect';
+    content: 'login';
   }
 }
 
