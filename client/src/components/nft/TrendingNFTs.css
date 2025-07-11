@@ -5,6 +5,7 @@
     max-width: 1400px;
     margin: 0 auto;
   font-family: "Nunito", sans-serif;
+  background-color: white !important;
 
 }
 
@@ -82,7 +83,7 @@
 
 .trending-nft-card {
     background: white;
-    border-radius: 16px;
+    /* border-radius: 16px; */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     transition: all 0.3s ease;
