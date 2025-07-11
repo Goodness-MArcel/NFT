@@ -113,7 +113,7 @@ function TrendingNFTs() {
     }
 
     return (
-        <div className="trending-container mt-md-5">
+        <div className="trending-container border mt-md-5">
             <h2>Trending NFTs</h2>
             {/* <p className="trending-subtitle">Discover the hottest NFTs in the market</p> */}
 
