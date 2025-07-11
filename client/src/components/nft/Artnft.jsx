@@ -89,7 +89,7 @@ function  ArtCollection() {
     price ? `${parseFloat(price).toFixed(3)} ETH` : "N/A";
 
   return (
-    <div className="trending-container border mt-md-5">
+    <div className="trending-container mt-md-5">
       {/* <h2 style={{fontWeight: 'bolder'}}> Arts </h2> */}
       <div
         style={{

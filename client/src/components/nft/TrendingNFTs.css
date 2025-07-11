@@ -94,7 +94,7 @@
     width: 40px;
     height: 40px;
     border: 3px solid #f3f4f6;
-    border-top: 3px solid #ff6b6b;
+    /* border-top: 3px solid #ff6b6b; */
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin-bottom: 16px;
@@ -127,7 +127,7 @@
 
 .trending-swiper {
     padding: 20px 0 50px 0;
-    border: thin solid red;
+    /* border: thin solid red; */
 }
 
 .trending-slide {
@@ -140,7 +140,7 @@
     background: white;
     border-radius: 0 !important;
     /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); */
-    border: 2px solid green;
+    /* border: 2px solid green; */
     overflow: hidden !important;
     transition: all 0.3s ease;
     position: relative;
@@ -173,7 +173,7 @@
     height: 180px;
     position: relative;
     overflow: hidden;
-    border-bottom: 2px solid #1454d3;
+    
 }
 
 .nft-image {

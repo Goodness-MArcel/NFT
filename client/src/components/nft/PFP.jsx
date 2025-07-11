@@ -99,7 +99,7 @@ function PFPCollection() {
     price ? `${parseFloat(price).toFixed(3)} ETH` : "N/A";
 
   return (
-    <div className="trending-container border mt-md-5">
+    <div className="trending-container mt-md-2">
       <div
         style={{
           display: "flex",
