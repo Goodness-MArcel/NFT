@@ -35,8 +35,10 @@
   .ms-auto{
     border: thin solid green !important;
     font-size: 10px !important;
-    margin: 0 !important;
-    padding: 0 !important;
+    /* margin: 0 !important; */
+    /* padding: 0 !important; */
+    position: relative !important;
+    left: -35px !important;
   }
   .ms-auto .btn{
     /* color: green !important; */
