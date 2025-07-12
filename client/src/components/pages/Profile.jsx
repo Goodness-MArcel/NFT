@@ -370,7 +370,7 @@ function ProfilePage() {
         <div className="container position-relative" style={{ zIndex: 2 }}>
           <div className="row align-items-end h-100 py-5">
             <div className="col-12">
-              <div className="d-flex flex-column flex-md-row align-items-center align-items-md-end">
+              <div className="d-flex flex-column flex-md-row align-items-center align-items-md-end border">
                 <div className="position-relative mb-3 mb-md-0">
                   <img
                     src={userProfile?.avatar || "/default-avatar.png"}
