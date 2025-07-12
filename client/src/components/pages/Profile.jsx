@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import "./Profile.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useAuth } from "../../context/AuthContext";
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+import { supabase } from "../../services/supabase";
 
 function ProfilePage() {
   const { currentUser } = useAuth();
@@ -18,25 +18,13 @@ function ProfilePage() {
 
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
-  const [userProfile, setUserProfile] = useState({
-    name:
-      currentUser?.displayName || currentUser?.email?.split("@")[0] || "User",
-    username: currentUser?.email?.split("@")[0] || "user",
-    bio: "",
-    avatar: null,
-    cover_image: null,
-    location: "",
-    website: "",
-    twitter: "",
-    instagram: "",
-  });
-
+  const [userProfile, setUserProfile] = useState(null);
   const [editProfile, setEditProfile] = useState({});
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  console.log(userProfile);
+
   const fileInputRef = useRef(null);
   const avatarInputRef = useRef(null);
   const coverInputRef = useRef(null);
@@ -44,18 +32,25 @@ function ProfilePage() {
   useEffect(() => {
     if (currentUser) {
       loadUserProfile();
-      loadUserNfts();
+      // loadUserNfts();
     }
   }, [currentUser]);
 
   const loadUserProfile = async () => {
     try {
-      const res = await fetch(
-        `${API_BASE}/api/users/${currentUser.uid}`
-      );
-      if (!res.ok) throw new Error("Could not load profile");
-      const data = await res.json();
-      setUserProfile((prev) => ({ ...prev, ...data }));
+      console.log("Loading user profile for ID:", currentUser.id);
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", currentUser.id)
+        .single();
+
+      console.log("Profile data loaded:", data);
+      console.log("Profile load error:", error);
+
+      if (error) throw error;
+      setUserProfile(data);
     } catch (err) {
       console.error("Error loading profile:", err);
       setError("Failed to load profile.");
@@ -64,11 +59,12 @@ function ProfilePage() {
 
   const loadUserNfts = async () => {
     try {
-      const res = await fetch(
-        `${API_BASE}/api/nfts?owner=${currentUser.uid}`
-      );
-      if (!res.ok) throw new Error("Could not load NFTs");
-      const data = await res.json();
+      const { data, error } = await supabase
+        .from("nfts")
+        .select("*")
+        .eq("owner", currentUser.id);
+
+      if (error) throw error;
       setNfts(data);
     } catch (err) {
       console.error("Error loading NFTs:", err);
@@ -76,64 +72,83 @@ function ProfilePage() {
     }
   };
 
-  const handleImageUpload = async (event, type = "avatar") => {
-    const file = event.target.files[0];
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) return setError("Max file size is 10MB.");
-    if (!file.type.startsWith("image/"))
-      return setError("Invalid image format.");
-
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("type", type);
-    formData.append("uid", currentUser.uid);
-
+  const uploadImageToStorage = async (file, path) => {
     try {
-      setLoading(true);
-      const res = await fetch(`${API_BASE}/api/users/upload-image`, {
-        method: "POST",
-        body: formData,
-      });
-      if (!res.ok) throw new Error("Upload failed");
-      const data = await res.json();
+      const fileName = `${Date.now()}_${file.name}`;
+      console.log("Uploading to path:", `${path}/${fileName}`);
 
-      const fieldName = type === "cover" ? "cover_image" : type;
-      setUserProfile((prev) => ({ ...prev, [fieldName]: data.url }));
-      setSuccess(
-        `${type === "avatar" ? "Profile picture" : "Cover image"} updated!`
-      );
-      setTimeout(() => setSuccess(""), 3000);
-    } catch (err) {
-      console.error("Upload error:", err.message);
-      setError("Image upload failed.");
-    } finally {
-      setLoading(false);
+      const { data, error } = await supabase.storage
+        .from("nftproject")
+        .upload(`${path}/${fileName}`, file);
+
+      console.log("Upload response:", { data, error });
+
+      if (error) {
+        console.error("Storage upload error:", error);
+        throw error;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("nftproject")
+        .getPublicUrl(`${path}/${fileName}`);
+
+      console.log("Public URL:", urlData.publicUrl);
+      return urlData.publicUrl;
+    } catch (error) {
+      console.error("Upload function error:", error);
+      throw error;
     }
   };
 
-  const handleNftImageSelect = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const handleImageUpload = async (event, type = "avatar") => {
+    const file = event.target.files[0];
+    if (!file || !file.type.startsWith("image/"))
+      return setError("Invalid image file");
+    if (file.size > 10 * 1024 * 1024) return setError("Max file size is 10MB");
 
-    if (file.size > 10 * 1024 * 1024) {
-      setError("Image too large (max 10MB)");
-      return;
+    try {
+      setLoading(true);
+      setError(""); // Clear previous errors
+      setSuccess(""); // Clear previous success messages
+
+      console.log("Starting image upload for type:", type);
+      console.log("Current user ID:", currentUser.id);
+
+      const imageUrl = await uploadImageToStorage(file, type);
+      console.log("Image uploaded successfully, URL:", imageUrl);
+
+      const fieldName = type === "cover" ? "cover_image" : "avatar";
+      console.log("Updating profile field:", fieldName, "with URL:", imageUrl);
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .update({ [fieldName]: imageUrl })
+        .eq("id", currentUser.id)
+        .select(); // Add select to get the updated data back
+
+      console.log("Profile update response:", { data, error });
+
+      if (error) {
+        console.error("Profile update error:", error);
+        throw error;
+      }
+
+      // Update local state
+      setUserProfile((prev) => ({ ...prev, [fieldName]: imageUrl }));
+      console.log("Local state updated");
+
+      setSuccess(
+        `${type === "avatar" ? "Avatar" : "Cover image"} uploaded successfully`
+      );
+
+      // Force a reload of the profile to ensure we have the latest data
+      await loadUserProfile();
+    } catch (err) {
+      console.error("Image upload error:", err);
+      setError(`Image upload failed: ${err.message}`);
+    } finally {
+      setLoading(false);
     }
-
-    if (!file.type.startsWith("image/")) {
-      setError("Only image files are allowed");
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setNewNft((prev) => ({
-        ...prev,
-        image: file,
-        imagePreview: reader.result,
-      }));
-    };
-    reader.readAsDataURL(file);
   };
 
   const handleNftUpload = async (e) => {
@@ -145,26 +160,21 @@ function ProfilePage() {
 
     try {
       setLoading(true);
-      setUploadProgress(10);
+      const imageUrl = await uploadImageToStorage(newNft.image, "nfts");
+      const { data, error } = await supabase.from("nfts").insert([
+        {
+          title: newNft.title,
+          description: newNft.description,
+          price: newNft.price,
+          category: newNft.category,
+          image: imageUrl,
+          owner: currentUser.id,
+          owner_email: currentUser.email,
+        },
+      ]);
 
-      const formData = new FormData();
-      formData.append("image", newNft.image);
-      formData.append("title", newNft.title);
-      formData.append("description", newNft.description);
-      formData.append("price", newNft.price);
-      formData.append("category", newNft.category);
-      formData.append("owner", currentUser.uid);
-      formData.append("ownerEmail", currentUser.email);
-
-      const res = await fetch(`${API_BASE}/api/nfts`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!res.ok) throw new Error("Upload failed");
-      const newItem = await res.json();
-      setNfts((prev) => [newItem, ...prev]);
-
+      if (error) throw error;
+      setNfts((prev) => [data[0], ...prev]);
       setNewNft({
         title: "",
         description: "",
@@ -174,44 +184,49 @@ function ProfilePage() {
         category: "Art",
       });
       setShowUploadModal(false);
-      setUploadProgress(100);
       setSuccess("NFT uploaded!");
-      if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (err) {
-      console.error("NFT upload error:", err);
-      setError("NFT upload failed.");
+      console.error(err);
+      setError("NFT upload failed");
     } finally {
       setLoading(false);
-      setUploadProgress(0);
     }
+  };
+
+  const handleNftImageSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/") || file.size > 10 * 1024 * 1024) {
+      setError("Invalid image");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setNewNft((prev) => ({
+        ...prev,
+        image: file,
+        imagePreview: reader.result,
+      }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
     try {
       setLoading(true);
-      const payload = {
-        uid: currentUser.uid,
-        email: currentUser.email,
-        ...editProfile,
-      };
-      const res = await fetch(
-        `${API_BASE}/api/users/${currentUser.uid}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
-      if (!res.ok) throw new Error("Update failed");
-      const updated = await res.json();
-      setUserProfile((prev) => ({ ...prev, ...updated }));
+      const { error } = await supabase
+        .from("profiles")
+        .update(editProfile)
+        .eq("id", currentUser.id);
+
+      if (error) throw error;
+      setUserProfile((prev) => ({ ...prev, ...editProfile }));
       setShowEditProfileModal(false);
-      setSuccess("Profile updated!");
-      setTimeout(() => setSuccess(""), 3000);
+      setSuccess("Profile updated");
     } catch (err) {
-      console.error("Profile update error:", err);
-      setError("Update failed.");
+      console.error(err);
+      setError("Update failed");
     } finally {
       setLoading(false);
     }
@@ -221,7 +236,6 @@ function ProfilePage() {
     setEditProfile({ ...userProfile });
     setShowEditProfileModal(true);
   };
-
   // Styles
   const profileStyles = {
     backgroundColor: "#f8f9fa",
@@ -268,6 +282,22 @@ function ProfilePage() {
           <a href="/login" className="btn btn-primary">
             Login
           </a>
+        </div>
+      </div>
+    );
+  }
+
+  if (!userProfile) {
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ minHeight: "100vh" }}
+      >
+        <div className="text-center">
+          <div className="spinner-border" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <h3 className="mt-3">Loading profile...</h3>
         </div>
       </div>
     );
@@ -325,6 +355,7 @@ function ProfilePage() {
           <img
             src={userProfile.cover_image} // Add server URL
             alt="Cover"
+            crossOrigin="true"
             className="w-100 h-100 position-absolute"
             style={{ objectFit: "cover", opacity: 0.7 }}
             onError={(e) => {
@@ -342,7 +373,7 @@ function ProfilePage() {
               <div className="d-flex flex-column flex-md-row align-items-center align-items-md-end">
                 <div className="position-relative mb-3 mb-md-0">
                   <img
-                    src={userProfile.avatar || "/default-avatar.png"}
+                    src={userProfile?.avatar || "/default-avatar.png"}
                     alt="Profile"
                     className="rounded-circle border border-4 border-white"
                     style={{
@@ -350,7 +381,14 @@ function ProfilePage() {
                       height: "150px",
                       objectFit: "cover",
                     }}
+                    onLoad={() =>
+                      console.log("Avatar image loaded successfully")
+                    }
                     onError={(e) => {
+                      console.error(
+                        "Avatar failed to load:",
+                        userProfile?.avatar
+                      );
                       if (!e.target.dataset.fallback) {
                         e.target.onerror = null; // prevent re-loop
                         e.target.src = "/default-avatar.png"; // must be placed in public/

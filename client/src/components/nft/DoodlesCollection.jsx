@@ -89,7 +89,7 @@ function GamingCollection() {
     price ? `${parseFloat(price).toFixed(3)} ETH` : "N/A";
 
   return (
-    <div className="trending-container mt-md-2">
+    <div className="trending-container">
       {/* <h2 style={{fontWeight: 'bolder'}}> Gaming </h2> */}
       <div
         style={{

@@ -59,7 +59,7 @@
 
 
 .trending-container {
-    padding: 40px 20px;
+    padding: 10px 20px;
     max-width: 1400px;
     margin: 0 auto;
   font-family: "Nunito", sans-serif;
@@ -74,7 +74,7 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    margin: 0 0 8px 0;
+    margin: 0 0 3px 0;
     text-align: start;
 }
 

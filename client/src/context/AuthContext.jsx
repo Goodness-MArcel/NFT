@@ -1,12 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { auth, checkNetworkStatus } from "../services/firebase";
-import {
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  signOut,
-  createUserWithEmailAndPassword,
-  updateProfile
-} from "firebase/auth";
+import { supabase } from "../services/supabase";
+// import { checkNetworkStatus } from "../services/firebase"; // You can keep this if needed
 
 const AuthContext = createContext();
 
@@ -18,31 +12,30 @@ export const AuthProvider = ({ children }) => {
   const signup = async (email, password, username) => {
     try {
       setError(null);
-      if (!checkNetworkStatus()) throw new Error("No internet connection.");
+      // if (!checkNetworkStatus()) throw new Error("No internet connection.");
       if (!email || !password || !username) throw new Error("All fields are required");
       if (password.length < 6) throw new Error("Password must be at least 6 characters");
       if (username.length < 3) throw new Error("Username must be at least 3 characters");
 
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // Set display name in Firebase
-      await updateProfile(user, { displayName: username });
-
-      // Save to PostgreSQL via your backend
-      await fetch('http://localhost:3000/api/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            username,
+          },
         },
-        body: JSON.stringify({
-          uid: user.uid,
-          email: user.email,
-          username,
-        }),
       });
+      
+      console.log("Sign up data:", data);
+      console.log("Sign up error:", signUpError);
 
-      return user;
+      if (signUpError) throw signUpError;
+
+      // The profile will be created automatically by the database trigger
+      // No need to manually insert into profiles table anymore
+
+      return data.user;
     } catch (error) {
       setError(error.message);
       throw error;
@@ -52,11 +45,17 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       setError(null);
-      if (!checkNetworkStatus()) throw new Error("No internet connection.");
+      // if (!checkNetworkStatus()) throw new Error("No internet connection.");
       if (!email || !password) throw new Error("Email and password are required");
 
-      const userCredential = await signInWithEmailAndPassword(auth, email.toLowerCase(), password);
-      return userCredential;
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.toLowerCase(),
+        password,
+      });
+
+      if (signInError) throw signInError;
+
+      return data.user;
     } catch (error) {
       setError(error.message);
       throw error;
@@ -66,7 +65,8 @@ export const AuthProvider = ({ children }) => {
   const logOut = async () => {
     try {
       setError(null);
-      await signOut(auth);
+      const { error: logoutError } = await supabase.auth.signOut();
+      if (logoutError) throw logoutError;
     } catch (error) {
       setError(error.message);
       throw error;
@@ -76,11 +76,24 @@ export const AuthProvider = ({ children }) => {
   const clearError = () => setError(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
+    const getUser = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      setCurrentUser(session?.user || null);
       setLoading(false);
+    };
+
+    getUser();
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setCurrentUser(session?.user || null);
     });
-    return unsubscribe;
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
   const value = {
@@ -90,7 +103,7 @@ export const AuthProvider = ({ children }) => {
     logOut,
     loading,
     error,
-    clearError
+    clearError,
   };
 
   return (

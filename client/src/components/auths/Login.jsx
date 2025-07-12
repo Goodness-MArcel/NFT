@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
+import { supabase } from "../../services/supabase"; // Ensure this path is correct
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
 import "./Login.css";
 
@@ -15,37 +16,45 @@ function Login() {
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setError("");
+  e.preventDefault();
+  setError("");
 
-    if (!email || !password) {
-      setError("Please fill in all fields");
-      return;
-    }
+  if (!email || !password) {
+    setError("Please fill in all fields");
+    return;
+  }
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      // 1. Login to Firebase
-      const userCredential = await login(email, password);
-      const uid = userCredential.user.uid;
+    // 1. Login using Supabase
+    const user = await login(email, password);
+    if (!user) throw new Error("Authentication failed");
 
-      // 2. Fetch user from PostgreSQL backend
-      const res = await fetch(`${API_BASE}/api/users/${uid}`);
-      if (!res.ok) throw new Error("User not found in database");
-      const userData = await res.json();
+    // 2. (Optional) Fetch user profile from Supabase 'profiles' table
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+      console.log("Profile data:", profile);
+      console.log('user id:', user.id);
 
-      // 3. (Optional) Store user data globally (context/localStorage)
+    if (profileError) throw new Error("User profile not found");
 
-      // 4. Navigate to profile page
-      navigate("/profil");
+    // 3. (Optional) Store profile in localStorage or context
+    localStorage.setItem("user_profile", JSON.stringify(profile));
 
-    } catch (err) {
-      setError(err.message || "Login failed");
-    } finally {
-      setLoading(false);
-    }
-  };
+    // 4. Navigate to profile page
+    navigate("/profile");
+
+  } catch (err) {
+    setError(err.message || "Login failed");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="login-container">
