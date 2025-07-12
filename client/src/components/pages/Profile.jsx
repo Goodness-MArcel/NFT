@@ -259,7 +259,14 @@ function ProfilePage() {
     transition: "transform 0.2s ease-in-out",
     // padding: '10px'
   };
-
+  const cardStyle ={
+    backgroundColor: "white",
+    border: "1px solid #dee2e6",
+     borderRadius: "12px",
+    // boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+    color: "white !important",
+    transition: "transform 0.2s ease-in-out",
+  }
   const buttonPrimaryStyles = {
     backgroundColor: "black",
     borderColor: "black",
@@ -607,7 +614,7 @@ function ProfilePage() {
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
         >
           <div className="modal-dialog modal-lg">
-            <div className="modal-content" style={cardStyles}>
+            <div className="modal-content" style={cardStyle}>
               <div className="modal-header border-bottom">
                 <h5
                   className="modal-title fw-bold"
@@ -800,7 +807,7 @@ function ProfilePage() {
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
         >
           <div className="modal-dialog modal-lg">
-            <div className="modal-content" style={cardStyles}>
+            <div className="modal-content" style={cardStyle}>
               <div className="modal-header border-bottom">
                 <h5
                   className="modal-title fw-bold"
