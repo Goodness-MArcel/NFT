@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../services/supabase";
-// import { checkNetworkStatus } from "../services/firebase"; // You can keep this if needed
 
 const AuthContext = createContext();
 
@@ -8,11 +7,11 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [initializing, setInitializing] = useState(true);
 
   const signup = async (email, password, username) => {
     try {
       setError(null);
-      // if (!checkNetworkStatus()) throw new Error("No internet connection.");
       if (!email || !password || !username) throw new Error("All fields are required");
       if (password.length < 6) throw new Error("Password must be at least 6 characters");
       if (username.length < 3) throw new Error("Username must be at least 3 characters");
@@ -32,9 +31,6 @@ export const AuthProvider = ({ children }) => {
 
       if (signUpError) throw signUpError;
 
-      // The profile will be created automatically by the database trigger
-      // No need to manually insert into profiles table anymore
-
       return data.user;
     } catch (error) {
       setError(error.message);
@@ -45,7 +41,6 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       setError(null);
-      // if (!checkNetworkStatus()) throw new Error("No internet connection.");
       if (!email || !password) throw new Error("Email and password are required");
 
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
@@ -76,23 +71,55 @@ export const AuthProvider = ({ children }) => {
   const clearError = () => setError(null);
 
   useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+    let mounted = true;
 
-      setCurrentUser(session?.user || null);
-      setLoading(false);
+    const initializeAuth = async () => {
+      try {
+        // Get initial session
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error getting session:', error);
+          setError(error.message);
+        }
+
+        if (mounted) {
+          setCurrentUser(session?.user || null);
+          setLoading(false);
+          setInitializing(false);
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        if (mounted) {
+          setError(error.message);
+          setLoading(false);
+          setInitializing(false);
+        }
+      }
     };
 
-    getUser();
+    initializeAuth();
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setCurrentUser(session?.user || null);
-    });
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
+        
+        if (mounted) {
+          setCurrentUser(session?.user || null);
+          setLoading(false);
+          
+          if (event === 'SIGNED_OUT') {
+            // Clear any cached data
+            setError(null);
+          }
+        }
+      }
+    );
 
     return () => {
-      listener.subscription.unsubscribe();
+      mounted = false;
+      subscription?.unsubscribe();
     };
   }, []);
 
@@ -104,11 +131,12 @@ export const AuthProvider = ({ children }) => {
     loading,
     error,
     clearError,
+    initializing,
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {!initializing && children}
     </AuthContext.Provider>
   );
 };

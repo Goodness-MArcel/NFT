@@ -420,30 +420,30 @@ function ProfilePage() {
                     </p>
                   )}
                 </div>
-  <div className="ms-auto mt-3 mt-md-0 d-flex flex-s-column flex-sm-row justify-content-sm-center align-items-sm-center gap-2 border p-2">
-  <button
-    className="btn me-sm-2 fs-9 fs-sm-5" // fs-6 on mobile, fs-5 on sm+
-    style={buttonSecondaryStyles}
-    onClick={() => coverInputRef.current?.click()}
-    disabled={loading}
-  >
-    <i className="fas fa-image me-2"></i>Change Cover
-  </button>
-  <button
-    className="btn me-sm-2 fs-6 fs-sm-5"
-    style={buttonSecondaryStyles}
-    onClick={openEditProfile}
-  >
-    <i className="fas fa-edit me-2"></i>Edit Profile
-  </button>
-  <button
-    className="btn fs-6 fs-sm-5"
-    style={buttonPrimaryStyles}
-    onClick={() => setShowUploadModal(true)}
-  >
-    <i className="fas fa-plus me-2"></i>Upload NFT
-  </button>
-</div>
+                <div className="ms-auto mt-3 mt-md-0 d-flex flex-s-column flex-sm-row justify-content-sm-center align-items-sm-center gap-2 border p-2">
+                  <button
+                    className="btn me-sm-2 fs-9 fs-sm-5" // fs-6 on mobile, fs-5 on sm+
+                    style={buttonSecondaryStyles}
+                    onClick={() => coverInputRef.current?.click()}
+                    disabled={loading}
+                  >
+                    <i className="fas fa-image me-2"></i>Change Cover
+                  </button>
+                  <button
+                    className="btn me-sm-2 fs-6 fs-sm-5"
+                    style={buttonSecondaryStyles}
+                    onClick={openEditProfile}
+                  >
+                    <i className="fas fa-edit me-2"></i>Edit Profile
+                  </button>
+                  <button
+                    className="btn fs-6 fs-sm-5"
+                    style={buttonPrimaryStyles}
+                    onClick={() => setShowUploadModal(true)}
+                  >
+                    <i className="fas fa-plus me-2"></i>Upload NFT
+                  </button>
+                </div>
               </div>
             </div>
           </div>
