@@ -35,15 +35,17 @@
   .ms-auto{
     border: thin solid green !important;
     font-size: 10px !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
   .ms-auto .btn{
     /* color: green !important; */
     padding: 4px 8px !important;
     text-wrap: nowrap !important;
     font-size: 13px !important;
-    color: black !important;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-  }
+    color: white !important;
+background-color: black !important; 
+ }
 }
 
 .form-control:focus,
