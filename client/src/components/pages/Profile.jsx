@@ -459,7 +459,7 @@ function ProfilePage() {
               <h3 className="mb-1 fw-bold" style={{ color: "white" }}>
                 {nfts.length}
               </h3>
-              <p className="mb-0 ">NFTs Created</p>
+              <p className="mb-0 text-light ">NFTs Created</p>
             </div>
           </div>
           <div className="col-md-3 col-6 mb-3">
@@ -469,7 +469,7 @@ function ProfilePage() {
                   .reduce((total, nft) => total + parseFloat(nft.price || 0), 0)
                   .toFixed(2)}
               </h3>
-              <p className="mb-0 ">ETH Listed</p>
+              <p className="mb-0 text-light ">ETH Listed</p>
             </div>
           </div>
           <div className="col-md-3 col-6 mb-3">
@@ -477,7 +477,7 @@ function ProfilePage() {
               <h3 className="mb-1 fw-bold" style={{ color: "white" }}>
                 {nfts.filter((nft) => nft.status === "Sold").length}
               </h3>
-              <p className="mb-0 ">NFTs Sold</p>
+              <p className="mb-0 text-light ">NFTs Sold</p>
             </div>
           </div>
           <div className="col-md-3 col-6 mb-3">
@@ -485,7 +485,7 @@ function ProfilePage() {
               <h3 className="mb-1 fw-bold" style={{ color: "white" }}>
                 {nfts.filter((nft) => nft.status === "Listed").length}
               </h3>
-              <p className="mb-0 ">Active Listings</p>
+              <p className="mb-0 text-light ">Active Listings</p>
             </div>
           </div>
         </div>
