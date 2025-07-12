@@ -25,6 +25,9 @@ function ProfilePage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const [canUpload, setCanUpload] = useState(false); // Set to false to show payment modal
+  const [showPaymentModal, setShowPaymentModal] = useState(false); // Add this
+
   const fileInputRef = useRef(null);
   const avatarInputRef = useRef(null);
   const coverInputRef = useRef(null);
@@ -32,7 +35,7 @@ function ProfilePage() {
   useEffect(() => {
     if (currentUser) {
       loadUserProfile();
-      // loadUserNfts();
+      loadUserNfts();
     }
   }, [currentUser]);
 
@@ -153,6 +156,13 @@ function ProfilePage() {
 
   const handleNftUpload = async (e) => {
     e.preventDefault();
+
+     // Check if user can upload
+    if (!canUpload) {
+      setShowPaymentModal(true);
+      return;
+    }
+
     if (!newNft.title || !newNft.image || !newNft.price) {
       setError("Fill in all fields");
       return;
@@ -167,11 +177,12 @@ function ProfilePage() {
           description: newNft.description,
           price: newNft.price,
           category: newNft.category,
-          image: imageUrl,
+          image_url: imageUrl,
           owner: currentUser.id,
           owner_email: currentUser.email,
         },
       ]);
+      console.log("NFT upload response:", { data, error });
 
       if (error) throw error;
       setNfts((prev) => [data[0], ...prev]);
@@ -192,6 +203,16 @@ function ProfilePage() {
       setLoading(false);
     }
   };
+
+  // Add function to handle payment (you can customize this)
+  const handlePayment = () => {
+    // Here you would integrate with your payment system
+    // For now, we'll just simulate a successful payment
+    setCanUpload(true);
+    setShowPaymentModal(false);
+    setSuccess("Payment successful! You can now upload NFTs.");
+  };
+
 
   const handleNftImageSelect = (e) => {
     const file = e.target.files[0];
@@ -542,7 +563,7 @@ function ProfilePage() {
                 nfts.map((nft) => (
                   <div
                     key={nft.id}
-                    className="col-lg-3 col-md-4 border col-sm-6 mb-4"
+                    className="col-lg-3 col-md-4 col-sm-6 mb-4"
                   >
                     <div className="card h-100" style={cardStyles}>
                       <img
@@ -561,12 +582,12 @@ function ProfilePage() {
                       <div className="card-body d-flex flex-column">
                         <h5
                           className="card-title fw-bold"
-                          style={{ color: "#2c3e50" }}
+                          style={{ color: "white" }}
                         >
                           {nft.title}
                         </h5>
                         {nft.description && (
-                          <p className="card-text text-muted small">
+                          <p className="card-text small text-light">
                             {nft.description.length > 100
                               ? nft.description.substring(0, 100) + "..."
                               : nft.description}
@@ -575,7 +596,7 @@ function ProfilePage() {
                         <div className="d-flex justify-content-between align-items-center mt-auto">
                           <span
                             className="fw-bold"
-                            style={{ color: "#8b4513" }}
+                            style={{ color: "green" }}
                           >
                             {nft.price} ETH
                           </span>
@@ -995,6 +1016,88 @@ function ProfilePage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+       {/* Payment Modal */}
+      {showPaymentModal && (
+        <div
+          className="modal show d-block"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content" style={cardStyle}>
+              <div className="modal-header border-bottom">
+                <h5
+                  className="modal-title fw-bold"
+                  style={{ color: "#2c3e50" }}
+                >
+                  <i className="fas fa-credit-card me-2"></i>
+                  Payment Required
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowPaymentModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body text-center py-4">
+                <div className="mb-4">
+                  <i className="fas fa-lock fa-3x text-warning mb-3"></i>
+                  <h4 style={{ color: "#2c3e50" }}>Upload Restricted</h4>
+                  <p className="text-muted mb-4">
+                    Hello! You need to make a payment before you can upload your NFT.
+                  </p>
+                  
+                  <div className="alert alert-info" role="alert">
+                    <i className="fas fa-info-circle me-2"></i>
+                    <strong>Premium Feature:</strong> NFT uploads require a subscription or one-time payment.
+                  </div>
+                  
+                  <div className="pricing-info mb-4">
+                    <div className="card border-primary">
+                      <div className="card-body">
+                        <h5 className="card-title text-primary">
+                          <i className="fas fa-star me-2"></i>
+                          NFT Upload Access
+                        </h5>
+                        <h3 className="text-primary">$9.99</h3>
+                        <p className="card-text text-muted">
+                          Unlimited NFT uploads for 30 days
+                        </p>
+                        <ul className="list-unstyled text-start">
+                          <li><i className="fas fa-check text-success me-2"></i>Unlimited uploads</li>
+                          <li><i className="fas fa-check text-success me-2"></i>High-quality storage</li>
+                          <li><i className="fas fa-check text-success me-2"></i>Priority support</li>
+                          <li><i className="fas fa-check text-success me-2"></i>Advanced analytics</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer border-top">
+                <button
+                  type="button"
+                  className="btn"
+                  style={buttonSecondaryStyles}
+                  onClick={() => setShowPaymentModal(false)}
+                >
+                  <i className="fas fa-times me-2"></i>
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn"
+                  style={buttonPrimaryStyles}
+                  onClick={handlePayment}
+                >
+                  <i className="fas fa-credit-card me-2"></i>
+                  Make Payment
+                </button>
+              </div>
             </div>
           </div>
         </div>
