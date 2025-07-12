@@ -33,7 +33,6 @@
     margin-bottom: 0.25rem;
   }
   .ms-auto{
-    border: thin solid green !important;
     font-size: 6px !important;
     justify-content: center !important;
     width: 100% !important;
@@ -44,6 +43,7 @@
     text-wrap: nowrap !important;
     font-size: 13px !important;
     color: white !important;
+    border: black !important;
     background-color: black !important; 
  }
 }

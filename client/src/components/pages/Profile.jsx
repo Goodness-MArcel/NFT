@@ -251,17 +251,18 @@ function ProfilePage() {
   };
 
   const cardStyles = {
-    backgroundColor: "#ffffff",
+    backgroundColor: "black",
     border: "1px solid #dee2e6",
     borderRadius: "12px",
-    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+    // boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+    color: "white !important",
     transition: "transform 0.2s ease-in-out",
     // padding: '10px'
   };
 
   const buttonPrimaryStyles = {
-    backgroundColor: "#8b4513",
-    borderColor: "#8b4513",
+    backgroundColor: "black",
+    borderColor: "black",
     color: "#ffffff",
   };
 
