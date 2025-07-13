@@ -57,6 +57,8 @@ function ProfilePage() {
 
       if (error) throw error;
       setUserProfile(data);
+      // Set canUpload based on database value
+      setCanUpload(data.can_upload || false);
     } catch (err) {
       console.error("Error loading profile:", err);
       setError("Failed to load profile.");
@@ -207,13 +209,15 @@ function ProfilePage() {
     }
   };
 
-  // Add function to handle payment (you can customize this)
+  // const handlePayment = () => {
+  //   setCanUpload(false);
+  //   setShowPaymentModal(false);
+  //   setSuccess("Payment successful! You can now upload NFTs.");
+  // };
+
   const handlePayment = () => {
-    // Here you would integrate with your payment system
-    // For now, we'll just simulate a successful payment
-    setCanUpload(false);
     setShowPaymentModal(false);
-    setSuccess("Payment successful! You can now upload NFTs.");
+    setError("Please contact admin to grant upload permission.");
   };
 
   const handleNftImageSelect = (e) => {
@@ -350,7 +354,7 @@ function ProfilePage() {
           ></button>
         </div>
       )}
-
+      
       {success && (
         <div
           className="alert alert-success alert-dismissible fade show m-3"
@@ -443,6 +447,13 @@ function ProfilePage() {
                 <div className="ms-md-4 text-center text-md-start">
                   <h1 className="mb-1 fw-bold">{userProfile.name}</h1>
                   <p className="mb-2 text-light">@{userProfile.username}</p>
+                   {/* <span
+                    className={`badge ms-2 ${
+                      userProfile?.can_upload ? "bg-success" : "bg-danger"
+                    }`}
+                  >
+                    {userProfile?.can_upload ? "Granted" : "Denied"}
+                  </span> */}
                   <p className="mb-0 text-light">{userProfile.bio}</p>
                   {userProfile.location && (
                     <p className="mb-0 text-light">
@@ -1040,6 +1051,21 @@ function ProfilePage() {
                 ></button>
               </div>
               <div className="modal-body text-center py-4">
+                <div className="alert alert-info" role="alert">
+                  {/* <i className="fas fa-info-circle me-2"></i> */}
+                  {/* <strong>Current NFT Balance:</strong>{" "} */}
+                  {/* {userProfile?.nft_balance || 0} */}
+                  {/* <br /> */}
+                  <strong>Upload Permission:</strong>
+                  <span
+                    className={`badge ms-2 ${
+                      userProfile?.can_upload ? "bg-success" : "bg-danger"
+                    }`}
+                  >
+                    {userProfile?.can_upload ? "Granted" : "Denied"}
+                  </span>
+                </div>
+
                 <div className="mb-4">
                   <i className="fas fa-lock fa-3x text-warning mb-3"></i>
                   <h4 style={{ color: "#2c3e50" }}>Upload Restricted</h4>
