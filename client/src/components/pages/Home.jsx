@@ -59,7 +59,7 @@ function Home() {
                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
                   </svg>
                 </div>
-                <h2 className="logo-text">NFT<span>Gallery</span></h2>
+                <h2 className="logo-text">Art<span>magic</span></h2>
               </div>
 
 

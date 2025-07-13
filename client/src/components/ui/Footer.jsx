@@ -103,7 +103,7 @@ function Footer() {
         <hr className="border-secondary my-4" />
 
         <div className="text-center text-white-50 small">
-          © Copyright 2024 ARTREEM. All rights reserved.
+          © Copyright 2025 ARTMAGIC. All rights reserved.
         </div>
       </div>
     </footer>

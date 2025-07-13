@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { QRCodeSVG } from "qrcode.react";
 import "./Profile.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { useAuth } from "../../context/AuthContext";
@@ -27,6 +28,8 @@ function ProfilePage() {
 
   const [canUpload, setCanUpload] = useState(false); // Set to false to show payment modal
   const [showPaymentModal, setShowPaymentModal] = useState(false); // Add this
+
+  // const [lastPaymentModal, setlastPaymentModa] = useState(false);
 
   const fileInputRef = useRef(null);
   const avatarInputRef = useRef(null);
@@ -157,7 +160,7 @@ function ProfilePage() {
   const handleNftUpload = async (e) => {
     e.preventDefault();
 
-     // Check if user can upload
+    // Check if user can upload
     if (!canUpload) {
       setShowPaymentModal(true);
       return;
@@ -208,11 +211,10 @@ function ProfilePage() {
   const handlePayment = () => {
     // Here you would integrate with your payment system
     // For now, we'll just simulate a successful payment
-    setCanUpload(true);
+    setCanUpload(false);
     setShowPaymentModal(false);
     setSuccess("Payment successful! You can now upload NFTs.");
   };
-
 
   const handleNftImageSelect = (e) => {
     const file = e.target.files[0];
@@ -280,14 +282,14 @@ function ProfilePage() {
     transition: "transform 0.2s ease-in-out",
     // padding: '10px'
   };
-  const cardStyle ={
+  const cardStyle = {
     backgroundColor: "white",
     border: "1px solid #dee2e6",
-     borderRadius: "12px",
+    borderRadius: "12px",
     // boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
     color: "white !important",
     transition: "transform 0.2s ease-in-out",
-  }
+  };
   const buttonPrimaryStyles = {
     backgroundColor: "black",
     borderColor: "black",
@@ -561,10 +563,7 @@ function ProfilePage() {
                 </div>
               ) : (
                 nfts.map((nft) => (
-                  <div
-                    key={nft.id}
-                    className="col-lg-3 col-md-4 col-sm-6 mb-4"
-                  >
+                  <div key={nft.id} className="col-lg-3 col-md-4 col-sm-6 mb-4">
                     <div className="card h-100" style={cardStyles}>
                       <img
                         src={nft.image_url} // Note: it's image_url from database
@@ -594,10 +593,7 @@ function ProfilePage() {
                           </p>
                         )}
                         <div className="d-flex justify-content-between align-items-center mt-auto">
-                          <span
-                            className="fw-bold"
-                            style={{ color: "green" }}
-                          >
+                          <span className="fw-bold" style={{ color: "green" }}>
                             {nft.price} ETH
                           </span>
                           <span
@@ -1021,7 +1017,7 @@ function ProfilePage() {
         </div>
       )}
 
-       {/* Payment Modal */}
+      {/* Payment Modal */}
       {showPaymentModal && (
         <div
           className="modal show d-block"
@@ -1048,31 +1044,83 @@ function ProfilePage() {
                   <i className="fas fa-lock fa-3x text-warning mb-3"></i>
                   <h4 style={{ color: "#2c3e50" }}>Upload Restricted</h4>
                   <p className="text-muted mb-4">
-                    Hello! You need to make a payment before you can upload your NFT.
+                    Hello! You need to make a payment before you can upload your
+                    NFT.
                   </p>
-                  
+
                   <div className="alert alert-info" role="alert">
                     <i className="fas fa-info-circle me-2"></i>
-                    <strong>Premium Feature:</strong> NFT uploads require a subscription or one-time payment.
+                    <strong>Premium Feature:</strong> NFT uploads require a
+                    one-time payment of 0.1 ETH.
                   </div>
-                  
+
                   <div className="pricing-info mb-4">
-                    <div className="card border-primary">
+                    <div className="card border">
                       <div className="card-body">
-                        <h5 className="card-title text-primary">
+                        <h5 className="card-title text-dark">
                           <i className="fas fa-star me-2"></i>
                           NFT Upload Access
                         </h5>
-                        <h3 className="text-primary">$9.99</h3>
+                        <h3 className="text-success">0.1 ETH</h3>
                         <p className="card-text text-muted">
                           Unlimited NFT uploads for 30 days
                         </p>
-                        <ul className="list-unstyled text-start">
-                          <li><i className="fas fa-check text-success me-2"></i>Unlimited uploads</li>
-                          <li><i className="fas fa-check text-success me-2"></i>High-quality storage</li>
-                          <li><i className="fas fa-check text-success me-2"></i>Priority support</li>
-                          <li><i className="fas fa-check text-success me-2"></i>Advanced analytics</li>
-                        </ul>
+
+                        {/* QR Code Payment Section */}
+                        <div className="d-flex flex-column align-items-center mt-3 mb-3">
+                          <div
+                            className="p-3 bg-white rounded mb-3"
+                            style={{ border: "1px solid #eee" }}
+                          >
+                            <QRCodeSVG
+                              value={`ethereum:0x1f73AEbf099E65B8Af114602f014d0dB628e115F?value=100000000000000000`}
+                              size={180}
+                              level="H"
+                              includeMargin={false}
+                            />
+                          </div>
+                          <p className="text-muted small mb-2">
+                            Scan to pay with any Ethereum wallet
+                          </p>
+
+                          {/* Address Copy Section */}
+                          <div
+                            className="input-group mt-2"
+                            style={{ maxWidth: "300px" }}
+                          >
+                            <input
+                              type="text"
+                              className="form-control"
+                              value="0x1f73AEbf099E65B8Af114602f014d0dB628e115F"
+                              readOnly
+                              style={{
+                                fontSize: "0.8rem",
+                                fontFamily: "monospace",
+                                borderTopRightRadius: "0",
+                                borderBottomRightRadius: "0",
+                              }}
+                            />
+                            <button
+                              className="btn btn-outline-secondary"
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText(
+                                  "0x1f73AEbf099E65B8Af114602f014d0dB628e115F"
+                                );
+                                // You might want to add a toast notification here
+                              }}
+                              style={{
+                                borderTopLeftRadius: "0",
+                                borderBottomLeftRadius: "0",
+                              }}
+                            >
+                              <i className="fas fa-copy"></i>
+                            </button>
+                          </div>
+                          <p className="text-muted small mt-2">
+                            Or copy address to send manually
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1092,16 +1140,48 @@ function ProfilePage() {
                   type="button"
                   className="btn"
                   style={buttonPrimaryStyles}
-                  onClick={handlePayment}
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      "0x1f73AEbf099E65B8Af114602f014d0dB628e115F"
+                    );
+                    // You might want to add a toast notification here
+                  }}
                 >
-                  <i className="fas fa-credit-card me-2"></i>
-                  Make Payment
+                  <i className="fas fa-copy me-2"></i>
+                  Copy Address
                 </button>
               </div>
             </div>
           </div>
         </div>
       )}
+
+      {
+        // handlePayment && (
+        //   <div className="modal show d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
+        //     <div className="modal-dialog modal-dialog-centered">
+        //       <div className="modal-content" style={cardStyle}>
+        //         <div className="modal-header border-bottom">
+        //           <h5 className="modal-title fw-bold" style={{ color: "#2c3e50" }}>
+        //             Payment Successful
+        //           </h5>
+        //           <button type="button" className="btn-close" onClick={setClosed(false)}></button>
+        //         </div>
+        //         <div className="modal-body text-center py-4">
+        //           <i className="fas fa-check-circle fa-3x text-success mb-3"></i>
+        //           <h4 style={{ color: "#2c3e50" }}>Thank You!</h4>
+        //           <p className="text-muted mb-4">Your payment was successful. You can now upload NFTs.</p>
+        //         </div>
+        //         <div className="modal-footer border-top">
+        //           <button type="button" className="btn" style={buttonPrimaryStyles} onClick={setClosed(false)}>
+        //             <i className="fas fa-check me-2"></i>Close
+        //           </button>
+        //         </div>
+        //       </div>
+        //     </div>
+        //   </div>
+        // )
+      }
 
       {/* Hidden File Inputs */}
       <input
