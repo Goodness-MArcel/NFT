@@ -225,6 +225,7 @@ body {
   border: none;
   background: rgba(112, 100, 100, 0.1);
   border-radius: 12px;
+  padding:8px 12px;
   cursor: pointer;
   transition: all 0.3s ease;
   backdrop-filter: blur(10px); 

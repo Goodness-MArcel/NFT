@@ -65,7 +65,7 @@ function Home() {
 
               <div className="header-actions">
                 <button className="search-btn" onClick={toggleSearch} aria-label="Search">
-                  <FaSearch size={84} color="black" />
+                  <FaSearch size={24} color="black" />
                 </button>
                 <Link to='/login' className="login-btn">
                   <span>login</span>
