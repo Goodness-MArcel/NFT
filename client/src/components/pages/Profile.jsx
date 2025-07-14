@@ -31,6 +31,9 @@ function ProfilePage() {
 
   const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
 
+  const [isAdmin, setIsAdmin] = useState(false);
+
+
   // Add withdrawal form state
   const [withdrawalForm, setWithdrawalForm] = useState({
     amount: "",
@@ -49,6 +52,23 @@ function ProfilePage() {
       loadUserNfts();
     }
   }, [currentUser]);
+
+  const checkAdminRole = async () => {
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("admin_role")
+      .eq("id", currentUser.id)
+      .single();
+
+    if (error) throw error;
+    setIsAdmin(data?.admin_role || false);
+  } catch (err) {
+    console.error("Error checking admin role:", err);
+    setIsAdmin(false);
+  }
+};
+
 
   // started
   const handleWithdrawalRequest = async (e) => {
@@ -113,6 +133,7 @@ function ProfilePage() {
       setUserProfile(data);
       // Set canUpload based on database value
       setCanUpload(data.can_upload || false);
+      setIsAdmin(data.admin_role || false);
     } catch (err) {
       console.error("Error loading profile:", err);
       setError("Failed to load profile.");
@@ -524,6 +545,20 @@ function ProfilePage() {
                   )}
                 </div>
                 <div className="ms-auto mt-3 mt-md-0 d-flex flex-s-column flex-sm-row justify-content-sm-center align-items-sm-center gap-2  settings-buttons">
+                    {isAdmin && (
+    <button
+      className="btn"
+      style={{
+        backgroundColor: "#dc3545",
+        borderColor: "#dc3545",
+        color: "#ffffff",
+      }}
+      onClick={() => window.location.href = '/admin/users'}
+      title="Admin Panel"
+    >
+      <i className="fas fa-user-shield me-2"></i>Admin Panel
+    </button>
+  )}
                   <button
                     className="btn " // fs-6 on mobile, fs-5 on sm+
                     style={buttonSecondaryStyles}
