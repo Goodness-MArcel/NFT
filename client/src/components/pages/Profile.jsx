@@ -29,6 +29,14 @@ function ProfilePage() {
   const [canUpload, setCanUpload] = useState(false); // Set to false to show payment modal
   const [showPaymentModal, setShowPaymentModal] = useState(false); // Add this
 
+  const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
+
+  // Add withdrawal form state
+  const [withdrawalForm, setWithdrawalForm] = useState({
+    amount: "",
+    walletAddress: "",
+    note: "",
+  });
   // const [lastPaymentModal, setlastPaymentModa] = useState(false);
 
   const fileInputRef = useRef(null);
@@ -41,6 +49,52 @@ function ProfilePage() {
       loadUserNfts();
     }
   }, [currentUser]);
+
+  // started
+  const handleWithdrawalRequest = async (e) => {
+    e.preventDefault();
+
+    if (!withdrawalForm.amount || !withdrawalForm.walletAddress) {
+      setError("Please fill in all required fields");
+      return;
+    }
+
+    const withdrawalAmount = parseFloat(withdrawalForm.amount);
+    const currentBalance = userProfile?.nft_balance || 0;
+
+    if (withdrawalAmount > currentBalance) {
+      setError("Insufficient balance for withdrawal");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const { data, error } = await supabase
+        .from("withdrawal_requests")
+        .insert([
+          {
+            user_id: currentUser.id,
+            amount: withdrawalAmount,
+            wallet_address: withdrawalForm.walletAddress,
+            note: withdrawalForm.note,
+            status: "pending",
+            created_at: new Date().toISOString(),
+          },
+        ]);
+
+      if (error) throw error;
+
+      setSuccess("Withdrawal request submitted successfully!");
+      setShowWithdrawalModal(false);
+      setWithdrawalForm({ amount: "", walletAddress: "", note: "" });
+    } catch (err) {
+      setError("Failed to submit withdrawal request.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  // ended
 
   const loadUserProfile = async () => {
     try {
@@ -201,6 +255,7 @@ function ProfilePage() {
       });
       setShowUploadModal(false);
       setSuccess("NFT uploaded!");
+      await loadUserProfile();
     } catch (err) {
       console.error(err);
       setError("NFT upload failed");
@@ -264,6 +319,12 @@ function ProfilePage() {
     setShowEditProfileModal(true);
   };
   // Styles
+  const buttonSuccessStyles = {
+    backgroundColor: "#28a745",
+    borderColor: "#28a745",
+    color: "#ffffff",
+  };
+
   const profileStyles = {
     backgroundColor: "#f8f9fa",
     minHeight: "100vh",
@@ -354,7 +415,7 @@ function ProfilePage() {
           ></button>
         </div>
       )}
-      
+
       {success && (
         <div
           className="alert alert-success alert-dismissible fade show m-3"
@@ -447,7 +508,7 @@ function ProfilePage() {
                 <div className="ms-md-4 text-center text-md-start">
                   <h1 className="mb-1 fw-bold">{userProfile.name}</h1>
                   <p className="mb-2 text-light">@{userProfile.username}</p>
-                   {/* <span
+                  {/* <span
                     className={`badge ms-2 ${
                       userProfile?.can_upload ? "bg-success" : "bg-danger"
                     }`}
@@ -495,17 +556,23 @@ function ProfilePage() {
       {/* Stats Section */}
       <div className="container py-4">
         <div className="row">
-          <div className="col-md-3 col-6 mb-3">
+          <div className="col-md-3 col-4 mb-3">
             <div className="text-center p-3" style={cardStyles}>
-              <h3 className="mb-1 fw-bold" style={{ color: "white" }}>
+              <h3
+                className="mb-1 fw-bold"
+                style={{ color: "white", fontSize: "1.4rem" }}
+              >
                 {nfts.length}
               </h3>
               <p className="mb-0 text-light ">NFTs Created</p>
             </div>
           </div>
-          <div className="col-md-3 col-6 mb-3">
+          <div className="col-md-3 col-4 mb-3">
             <div className="text-center p-3" style={cardStyles}>
-              <h3 className="mb-1 fw-bold" style={{ color: "white" }}>
+              <h3
+                className="mb-1 fw-bold"
+                style={{ color: "white", fontSize: "1.4rem" }}
+              >
                 {nfts
                   .reduce((total, nft) => total + parseFloat(nft.price || 0), 0)
                   .toFixed(2)}
@@ -513,17 +580,149 @@ function ProfilePage() {
               <p className="mb-0 text-light ">ETH Listed</p>
             </div>
           </div>
-          <div className="col-md-3 col-6 mb-3">
+          <div className="col-md-3 col-4 mb-3">
             <div className="text-center p-3" style={cardStyles}>
-              <h3 className="mb-1 fw-bold" style={{ color: "white" }}>
+              <h3
+                className="mb-1 fw-bold"
+                style={{ color: "white", fontSize: "1.4rem" }}
+              >
                 {nfts.filter((nft) => nft.status === "Sold").length}
               </h3>
               <p className="mb-0 text-light ">NFTs Sold</p>
             </div>
           </div>
-          <div className="col-md-3 col-6 mb-3">
+          <div className="col-lg-2 col-md-4 col-6 mb-3">
             <div className="text-center p-3" style={cardStyles}>
-              <h3 className="mb-1 fw-bold" style={{ color: "white" }}>
+              <h3
+                className="mb-1 fw-bold"
+                style={{ color: "#28a745", fontSize: "1.4rem" }}
+              >
+                {(userProfile?.nft_balance || 0).toFixed(3)}
+              </h3>
+              <p className="mb-0 text-light">ETH Balance</p>
+            </div>
+          </div>
+          {/* Withdrawal Button Card */}
+          <div className="col-lg-2 col-md-4 col-6 mb-3">
+            <div className="text-center p-3" style={cardStyles}>
+              <button
+                className="btn btn-sm w-100"
+                style={buttonSuccessStyles}
+                onClick={() => setShowWithdrawalModal(true)}
+                disabled={
+                  !userProfile?.nft_balance || userProfile.nft_balance <= 0
+                }
+              >
+                <i className="fas fa-wallet me-1"></i>
+                Withdraw
+              </button>
+              <p
+                className="mb-0 text-light mt-2"
+                style={{ fontSize: "0.8rem" }}
+              >
+                Available
+              </p>
+            </div>
+          </div>
+
+          {/* Withdrawal Modal */}
+          {showWithdrawalModal && (
+            <div
+              className="modal show d-block"
+              style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+            >
+              <div className="modal-dialog modal-lg">
+                <div className="modal-content" style={cardStyle}>
+                  <div className="modal-header border-bottom">
+                    <h5
+                      className="modal-title fw-bold"
+                      style={{ color: "#2c3e50" }}
+                    >
+                      <i className="fas fa-wallet me-2"></i>Withdraw ETH
+                    </h5>
+                    <button
+                      type="button"
+                      className="btn-close"
+                      onClick={() => setShowWithdrawalModal(false)}
+                    ></button>
+                  </div>
+                  <form onSubmit={handleWithdrawalRequest}>
+                    <div className="modal-body">
+                      <div className="alert alert-info">
+                        <strong>Available Balance:</strong>{" "}
+                        {(userProfile?.nft_balance || 0).toFixed(6)} ETH
+                      </div>
+
+                      <div className="mb-3">
+                        <label className="form-label fw-semibold">
+                          Withdrawal Amount (ETH) *
+                        </label>
+                        <input
+                          type="number"
+                          step="0.000001"
+                          min="0.001"
+                          max={userProfile?.nft_balance || 0}
+                          className="form-control"
+                          value={withdrawalForm.amount}
+                          onChange={(e) =>
+                            setWithdrawalForm((prev) => ({
+                              ...prev,
+                              amount: e.target.value,
+                            }))
+                          }
+                          required
+                        />
+                      </div>
+
+                      <div className="mb-3">
+                        <label className="form-label fw-semibold">
+                          Ethereum Wallet Address *
+                        </label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={withdrawalForm.walletAddress}
+                          onChange={(e) =>
+                            setWithdrawalForm((prev) => ({
+                              ...prev,
+                              walletAddress: e.target.value,
+                            }))
+                          }
+                          required
+                          placeholder="0x..."
+                        />
+                      </div>
+                    </div>
+                    <div className="modal-footer">
+                      <button
+                        type="button"
+                        className="btn"
+                        style={buttonSecondaryStyles}
+                        onClick={() => setShowWithdrawalModal(false)}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="btn"
+                        style={buttonSuccessStyles}
+                        disabled={loading}
+                      >
+                        {loading ? "Processing..." : "Request Withdrawal"}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="col-md-3 col-4 mb-3">
+            <div className="text-center p-3" style={cardStyles}>
+              <h3
+                className="mb-1 fw-bold"
+                style={{ color: "white", fontSize: "1.4rem" }}
+              >
                 {nfts.filter((nft) => nft.status === "Listed").length}
               </h3>
               <p className="mb-0 text-light ">Active Listings</p>
