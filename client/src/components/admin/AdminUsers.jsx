@@ -25,7 +25,7 @@ function AdminUsers() {
 
       if (error) throw error;
       setIsAdmin(data?.admin_role || false);
-      
+
       if (!data?.admin_role) {
         setError("Access denied. Admin privileges required.");
       }
@@ -41,10 +41,11 @@ function AdminUsers() {
     try {
       setLoading(true);
       setError("");
-      
+
       const { data, error: fetchError } = await supabase
         .from("profiles")
-        .select(`
+        .select(
+          `
           id,
           username,
           name,
@@ -58,11 +59,12 @@ function AdminUsers() {
           can_upload,
           admin_role,
           created_at
-        `)
-        .order('created_at', { ascending: false });
+        `
+        )
+        .order("created_at", { ascending: false });
 
       if (fetchError) throw fetchError;
-      
+
       setUsers(data || []);
     } catch (err) {
       console.error("Error loading users:", err);
@@ -93,7 +95,7 @@ function AdminUsers() {
     try {
       setUpdating(editedUser.id);
       setError("");
-      
+
       // Prepare update data - include all editable fields
       const updateData = {
         name: editedUser.name || null,
@@ -105,7 +107,7 @@ function AdminUsers() {
         instagram: editedUser.instagram || null,
         nft_balance: parseFloat(editedUser.nft_balance) || 0,
         can_upload: editedUser.can_upload || false,
-        admin_role: editedUser.admin_role || false
+        admin_role: editedUser.admin_role || false,
       };
 
       const { error: updateError } = await supabase
@@ -119,12 +121,11 @@ function AdminUsers() {
       setUsers((prev) =>
         prev.map((u) => (u.id === editedUser.id ? editedUser : u))
       );
-      
+
       setEditingUserId(null);
       setSuccess("User updated successfully!");
-      
+
       setTimeout(() => setSuccess(""), 3000);
-      
     } catch (err) {
       console.error("Error updating user:", err);
       setError("Failed to update user: " + err.message);
@@ -135,11 +136,14 @@ function AdminUsers() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setEditedUser({ 
-      ...editedUser, 
-      [name]: type === 'checkbox' ? checked : 
-              name === 'nft_balance' ? parseFloat(value) || 0 : 
-              value 
+    setEditedUser({
+      ...editedUser,
+      [name]:
+        type === "checkbox"
+          ? checked
+          : name === "nft_balance"
+          ? parseFloat(value) || 0
+          : value,
     });
   };
 
@@ -148,7 +152,7 @@ function AdminUsers() {
     try {
       setUpdating(userId);
       setError("");
-      
+
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ can_upload: true })
@@ -157,16 +161,11 @@ function AdminUsers() {
       if (updateError) throw updateError;
 
       setUsers((prev) =>
-        prev.map((u) => 
-          u.id === userId 
-            ? { ...u, can_upload: true } 
-            : u
-        )
+        prev.map((u) => (u.id === userId ? { ...u, can_upload: true } : u))
       );
-      
+
       setSuccess("Upload permission granted successfully!");
       setTimeout(() => setSuccess(""), 3000);
-      
     } catch (err) {
       console.error("Error granting upload permission:", err);
       setError("Failed to grant upload permission: " + err.message);
@@ -180,7 +179,7 @@ function AdminUsers() {
     try {
       setUpdating(userId);
       setError("");
-      
+
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ can_upload: false })
@@ -189,16 +188,11 @@ function AdminUsers() {
       if (updateError) throw updateError;
 
       setUsers((prev) =>
-        prev.map((u) => 
-          u.id === userId 
-            ? { ...u, can_upload: false } 
-            : u
-        )
+        prev.map((u) => (u.id === userId ? { ...u, can_upload: false } : u))
       );
-      
+
       setSuccess("Upload permission revoked successfully!");
       setTimeout(() => setSuccess(""), 3000);
-      
     } catch (err) {
       console.error("Error revoking upload permission:", err);
       setError("Failed to revoke upload permission: " + err.message);
@@ -212,7 +206,7 @@ function AdminUsers() {
     try {
       setUpdating(userId);
       setError("");
-      
+
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ admin_role: !currentAdminStatus })
@@ -221,16 +215,17 @@ function AdminUsers() {
       if (updateError) throw updateError;
 
       setUsers((prev) =>
-        prev.map((u) => 
-          u.id === userId 
-            ? { ...u, admin_role: !currentAdminStatus } 
-            : u
+        prev.map((u) =>
+          u.id === userId ? { ...u, admin_role: !currentAdminStatus } : u
         )
       );
-      
-      setSuccess(`Admin role ${!currentAdminStatus ? 'granted' : 'revoked'} successfully!`);
+
+      setSuccess(
+        `Admin role ${
+          !currentAdminStatus ? "granted" : "revoked"
+        } successfully!`
+      );
       setTimeout(() => setSuccess(""), 3000);
-      
     } catch (err) {
       console.error("Error updating admin role:", err);
       setError("Failed to update admin role: " + err.message);
@@ -274,13 +269,13 @@ function AdminUsers() {
         <h2>User Management</h2>
         <div className="badge bg-success">Admin Panel</div>
       </div>
-      
+
       {error && (
         <Alert variant="danger" dismissible onClose={() => setError("")}>
           {error}
         </Alert>
       )}
-      
+
       {success && (
         <Alert variant="success" dismissible onClose={() => setSuccess("")}>
           {success}
@@ -382,9 +377,9 @@ function AdminUsers() {
                     </td>
                     <td>
                       <div className="d-flex gap-1">
-                        <Button 
-                          variant="success" 
-                          onClick={handleSave} 
+                        <Button
+                          variant="success"
+                          onClick={handleSave}
                           size="sm"
                           disabled={updating === user.id}
                         >
@@ -413,24 +408,43 @@ function AdminUsers() {
                       <small>{user.email}</small>
                     </td>
                     <td>
-                      <small>{user.bio ? (user.bio.length > 50 ? user.bio.substring(0, 50) + "..." : user.bio) : "N/A"}</small>
+                      <small>
+                        {user.bio
+                          ? user.bio.length > 50
+                            ? user.bio.substring(0, 50) + "..."
+                            : user.bio
+                          : "N/A"}
+                      </small>
                     </td>
                     <td>
                       <small>{user.location || "N/A"}</small>
                     </td>
                     <td>
-                      <span className="badge bg-info">
+                      {/* <span className="badge bg-info">
                         {(user.nft_balance || 0).toFixed(3)} ETH
+                      </span> */}
+                      <span className="badge bg-info">
+                        {Number(user.nft_balance || 0) % 1 === 0
+                          ? `${user.nft_balance} ETH`
+                          : `${Number(user.nft_balance || 0).toFixed(3)} ETH`}
                       </span>
                     </td>
                     <td>
-                      <span className={`badge ${user.can_upload ? 'bg-success' : 'bg-danger'}`}>
-                        {user.can_upload ? 'Yes' : 'No'}
+                      <span
+                        className={`badge ${
+                          user.can_upload ? "bg-success" : "bg-danger"
+                        }`}
+                      >
+                        {user.can_upload ? "Yes" : "No"}
                       </span>
                     </td>
                     <td>
-                      <span className={`badge ${user.admin_role ? 'bg-warning' : 'bg-secondary'}`}>
-                        {user.admin_role ? 'Admin' : 'User'}
+                      <span
+                        className={`badge ${
+                          user.admin_role ? "bg-warning" : "bg-secondary"
+                        }`}
+                      >
+                        {user.admin_role ? "Admin" : "User"}
                       </span>
                     </td>
                     <td>
@@ -443,12 +457,17 @@ function AdminUsers() {
                         >
                           <i className="fas fa-edit"></i>
                         </Button>
-                        
+
                         <Button
-                          variant={user.can_upload ? "outline-danger" : "outline-success"}
-                          onClick={() => user.can_upload ? 
-                            handleRevokeUploadPermission(user.id) : 
-                            handleGrantUploadPermission(user.id)
+                          variant={
+                            user.can_upload
+                              ? "outline-danger"
+                              : "outline-success"
+                          }
+                          onClick={() =>
+                            user.can_upload
+                              ? handleRevokeUploadPermission(user.id)
+                              : handleGrantUploadPermission(user.id)
                           }
                           size="sm"
                           disabled={updating === user.id}
@@ -456,21 +475,42 @@ function AdminUsers() {
                           {updating === user.id ? (
                             <Spinner animation="border" size="sm" />
                           ) : (
-                            <i className={`fas ${user.can_upload ? 'fa-times' : 'fa-check'}`}></i>
+                            <i
+                              className={`fas ${
+                                user.can_upload ? "fa-times" : "fa-check"
+                              }`}
+                            ></i>
                           )}
                         </Button>
                         <Button
-                          variant={user.admin_role ? "outline-warning" : "outline-info"}
-                          onClick={() => handleToggleAdminRole(user.id, user.admin_role)}
+                          variant={
+                            user.admin_role ? "outline-warning" : "outline-info"
+                          }
+                          onClick={() =>
+                            handleToggleAdminRole(user.id, user.admin_role)
+                          }
                           size="sm"
-                          disabled={updating === user.id || user.id === currentUser.id}
-                          title={user.id === currentUser.id ? "Cannot modify your own admin role" : 
-                                 user.admin_role ? "Remove admin role" : "Grant admin role"}
+                          disabled={
+                            updating === user.id || user.id === currentUser.id
+                          }
+                          title={
+                            user.id === currentUser.id
+                              ? "Cannot modify your own admin role"
+                              : user.admin_role
+                              ? "Remove admin role"
+                              : "Grant admin role"
+                          }
                         >
                           {updating === user.id ? (
                             <Spinner animation="border" size="sm" />
                           ) : (
-                            <i className={`fas ${user.admin_role ? 'fa-user-minus' : 'fa-user-plus'}`}></i>
+                            <i
+                              className={`fas ${
+                                user.admin_role
+                                  ? "fa-user-minus"
+                                  : "fa-user-plus"
+                              }`}
+                            ></i>
                           )}
                         </Button>
                       </div>
@@ -493,10 +533,22 @@ function AdminUsers() {
                   Admin Actions
                 </h5>
                 <ul className="list-unstyled">
-                  <li><i className="fas fa-edit text-primary me-2"></i>Edit user profiles</li>
-                  <li><i className="fas fa-check text-success me-2"></i>Grant/revoke upload permissions</li>
-                  <li><i className="fas fa-user-plus text-info me-2"></i>Manage admin roles</li>
-                  <li><i className="fas fa-coins text-warning me-2"></i>Update NFT balances</li>
+                  <li>
+                    <i className="fas fa-edit text-primary me-2"></i>Edit user
+                    profiles
+                  </li>
+                  <li>
+                    <i className="fas fa-check text-success me-2"></i>
+                    Grant/revoke upload permissions
+                  </li>
+                  <li>
+                    <i className="fas fa-user-plus text-info me-2"></i>Manage
+                    admin roles
+                  </li>
+                  <li>
+                    <i className="fas fa-coins text-warning me-2"></i>Update NFT
+                    balances
+                  </li>
                 </ul>
               </div>
             </div>
@@ -517,12 +569,16 @@ function AdminUsers() {
                   </div>
                   <div className="col-4">
                     <div className="border-end">
-                      <h4 className="text-success">{users.filter(u => u.can_upload).length}</h4>
+                      <h4 className="text-success">
+                        {users.filter((u) => u.can_upload).length}
+                      </h4>
                       <small className="text-muted">Can Upload</small>
                     </div>
                   </div>
                   <div className="col-4">
-                    <h4 className="text-warning">{users.filter(u => u.admin_role).length}</h4>
+                    <h4 className="text-warning">
+                      {users.filter((u) => u.admin_role).length}
+                    </h4>
                     <small className="text-muted">Admins</small>
                   </div>
                 </div>
@@ -536,5 +592,3 @@ function AdminUsers() {
 }
 
 export default AdminUsers;
-
-                        
