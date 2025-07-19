@@ -13,6 +13,140 @@ function AdminUsers() {
   const [success, setSuccess] = useState("");
   const [updating, setUpdating] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  
+
+
+const [nfts, setNfts] = useState([]);
+const [showNftSection, setShowNftSection] = useState(false);
+const [loadingNfts, setLoadingNfts] = useState(false);
+const [selectedUserId, setSelectedUserId] = useState(null);
+const [editingNftId, setEditingNftId] = useState(null);
+const [editedNft, setEditedNft] = useState({});
+const [deletingNftId, setDeletingNftId] = useState(null);
+
+// Load NFTs for a specific user or all NFTs
+const loadNfts = async (userId = null) => {
+  try {
+    setLoadingNfts(true);
+    setError("");
+
+    let query = supabase
+      .from("nfts")
+      .select(`
+        id,
+        title,
+        description,
+        price,
+        image_url,
+        category,
+        status,
+        created_at,
+        user_id,
+        profiles!inner(username, name, email)
+      `)
+      .order("created_at", { ascending: false });
+
+    if (userId) {
+      query = query.eq("user_id", userId);
+    }
+
+    const { data, error: fetchError } = await query;
+
+    if (fetchError) throw fetchError;
+
+    setNfts(data || []);
+    setSelectedUserId(userId);
+  } catch (err) {
+    console.error("Error loading NFTs:", err);
+    setError("Failed to load NFTs: " + err.message);
+  } finally {
+    setLoadingNfts(false);
+  }
+};
+
+// Delete NFT
+const handleDeleteNft = async (nftId) => {
+  if (!window.confirm("Are you sure you want to delete this NFT? This action cannot be undone.")) {
+    return;
+  }
+
+  try {
+    setDeletingNftId(nftId);
+    setError("");
+
+    const { error: deleteError } = await supabase
+      .from("nfts")
+      .delete()
+      .eq("id", nftId);
+
+    if (deleteError) throw deleteError;
+
+    setNfts(prev => prev.filter(nft => nft.id !== nftId));
+    setSuccess("NFT deleted successfully!");
+    setTimeout(() => setSuccess(""), 3000);
+  } catch (err) {
+    console.error("Error deleting NFT:", err);
+    setError("Failed to delete NFT: " + err.message);
+  } finally {
+    setDeletingNftId(null);
+  }
+};
+
+// Edit NFT
+const handleEditNft = (nft) => {
+  setEditingNftId(nft.id);
+  setEditedNft({ ...nft });
+};
+
+// Save NFT changes
+const handleSaveNft = async () => {
+  try {
+    setUpdating(editedNft.id);
+    setError("");
+
+    const updateData = {
+      title: editedNft.title,
+      description: editedNft.description,
+      price: parseFloat(editedNft.price) || 0,
+      category: editedNft.category,
+      status: editedNft.status
+    };
+
+    const { error: updateError } = await supabase
+      .from("nfts")
+      .update(updateData)
+      .eq("id", editedNft.id);
+
+    if (updateError) throw updateError;
+
+    setNfts(prev => 
+      prev.map(nft => 
+        nft.id === editedNft.id 
+          ? { ...nft, ...updateData }
+          : nft
+      )
+    );
+
+    setEditingNftId(null);
+    setSuccess("NFT updated successfully!");
+    setTimeout(() => setSuccess(""), 3000);
+  } catch (err) {
+    console.error("Error updating NFT:", err);
+    setError("Failed to update NFT: " + err.message);
+  } finally {
+    setUpdating(null);
+  }
+};
+
+// Handle NFT form changes
+const handleNftChange = (e) => {
+  const { name, value } = e.target;
+  setEditedNft({
+    ...editedNft,
+    [name]: name === "price" ? parseFloat(value) || 0 : value
+  });
+};
+
 
   // Check if current user is admin
   const checkAdminRole = async () => {
@@ -262,6 +396,7 @@ function AdminUsers() {
       </div>
     );
   }
+  
 
   return (
     <div className="container mt-4">
@@ -523,6 +658,8 @@ function AdminUsers() {
         </Table>
       </div>
 
+      
+
       <div className="mt-4">
         <div className="row">
           <div className="col-md-6">
@@ -553,6 +690,7 @@ function AdminUsers() {
               </div>
             </div>
           </div>
+
           <div className="col-md-6">
             <div className="card">
               <div className="card-body">
