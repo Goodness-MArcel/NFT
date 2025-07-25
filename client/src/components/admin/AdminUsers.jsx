@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Table, Button, Form, Alert, Spinner } from "react-bootstrap";
 import { supabase } from "../../services/supabase";
 import { useAuth } from "../../context/AuthContext";
+import NftStatusTable from './UserNft'
 
 function AdminUsers() {
   const { currentUser } = useAuth();
@@ -23,6 +24,20 @@ const [selectedUserId, setSelectedUserId] = useState(null);
 const [editingNftId, setEditingNftId] = useState(null);
 const [editedNft, setEditedNft] = useState({});
 const [deletingNftId, setDeletingNftId] = useState(null);
+
+const displayNftStatus = async () =>{
+  const { data: nfts, error } = await supabase
+  .from('nfts')
+  .select('owner_email, status');
+
+if (error) {
+  console.error('Error fetching data:', error);
+} else {
+  console.log('NFTs:', nfts);
+}
+
+}
+displayNftStatus()
 
 // Load NFTs for a specific user or all NFTs
 const loadNfts = async (userId = null) => {
@@ -658,7 +673,9 @@ const handleNftChange = (e) => {
         </Table>
       </div>
 
-      
+      <section className="mt-5">
+        <NftStatusTable/>
+      </section>
 
       <div className="mt-4">
         <div className="row">
