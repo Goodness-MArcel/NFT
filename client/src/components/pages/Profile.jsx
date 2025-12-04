@@ -571,15 +571,15 @@ const buttonSecondaryStyles = {
             }}
           />
         )}
-        <div className="container position-relative" style={{ zIndex: 2 }}>
-          <div className="row align-items-end h-100 py-5">
-            <div className="col-12">
-              <div className="d-flex flex-column flex-md-row align-items-center align-items-md-end">
+        <div className="profile-container position-relative" style={{ zIndex: 2 }}>
+          <div className="profile-header">
+            <div className="w-100">
+              <div className="d-flex flex-column flex-md-row align-items-center align-items-md-end gap-3 gap-md-4">
                 <div className="position-relative mb-3 mb-md-0">
                   <img
                     src={userProfile?.avatar || "/default-avatar.png"}
                     alt="Profile"
-                    className="rounded-circle border border-4 border-white"
+                    className="profile-avatar rounded-circle border border-4 border-white"
                     style={{
                       width: "150px",
                       height: "150px",
@@ -614,8 +614,8 @@ const buttonSecondaryStyles = {
                   </button>
                 </div>
                 <div className="ms-md-4 text-center text-md-start">
-                  <h1 className="mb-1 fw-bold">{userProfile.name}</h1>
-                  <p className="mb-2 text-light">@{userProfile.username}</p>
+                  <h1 className="profile-title mb-1 fw-bold">{userProfile.name}</h1>
+                  <p className="mb-2 text-light text-responsive-base">@{userProfile.username}</p>
                   {/* <span
                     className={`badge ms-2 ${
                       userProfile?.can_upload ? "bg-success" : "bg-danger"
@@ -647,7 +647,7 @@ const buttonSecondaryStyles = {
                     </button>
                   )}
                   <button
-                    className="btn " // fs-6 on mobile, fs-5 on sm+
+                    className="btn btn-enhanced"
                     style={buttonSecondaryStyles}
                     onClick={() => coverInputRef.current?.click()}
                     disabled={loading}
@@ -655,14 +655,14 @@ const buttonSecondaryStyles = {
                     <i className="fas fa-image me-2"></i>Change Cover
                   </button>
                   <button
-                    className="btn "
+                    className="btn btn-enhanced"
                     style={buttonSecondaryStyles}
                     onClick={openEditProfile}
                   >
                     <i className="fas fa-edit me-2"></i>Edit Profile
                   </button>
                   <button
-                    className="btn "
+                    className="btn btn-enhanced"
                     style={buttonPrimaryStyles}
                     onClick={() => setShowUploadModal(true)}
                   >
@@ -676,59 +676,59 @@ const buttonSecondaryStyles = {
       </div>
 
       {/* Stats Section */}
-      <div className="container py-4">
-        <div className="row">
-          <div className="col-md-3 col-4 mb-3">
-            <div className="text-center p-3" style={cardStyles}>
+      <div className="profile-container stats-section ">
+        <div className="stats-grid container">
+          <div className="mb-3">
+            <div className="card text-center p-3 h-100" style={cardStyles}>
               <h3
-                className="mb-1 fw-bold"
-                style={{ color: "white", fontSize: "1.4rem" }}
+                className="mb-1 fw-bold text-responsive-lg"
+                style={{ color: "white" }}
               >
                 {nfts.length}
               </h3>
-              <p className="mb-0 text-light ">NFTs Created</p>
+              <p className="mb-0 text-light text-responsive-sm">NFTs Created</p>
             </div>
           </div>
-          <div className="col-md-3 col-4 mb-3">
-            <div className="text-center p-3" style={cardStyles}>
+          <div className="mb-3">
+            <div className="card text-center p-3 h-100" style={cardStyles}>
               <h3
-                className="mb-1 fw-bold"
-                style={{ color: "white", fontSize: "1.4rem" }}
+                className="mb-1 fw-bold text-responsive-lg"
+                style={{ color: "white" }}
               >
                 {nfts
                   .reduce((total, nft) => total + parseFloat(nft.price || 0), 0)
                   .toFixed(2)}
               </h3>
-              <p className="mb-0 text-light ">ETH Listed</p>
+              <p className="mb-0 text-light text-responsive-sm">ETH Listed</p>
             </div>
           </div>
-          <div className="col-md-3 col-4 mb-3">
-            <div className="text-center p-3" style={cardStyles}>
+          <div className="mb-3">
+            <div className="card text-center p-3 h-100" style={cardStyles}>
               <h3
-                className="mb-1 fw-bold"
-                style={{ color: "white", fontSize: "1.4rem" }}
+                className="mb-1 fw-bold text-responsive-lg"
+                style={{ color: "white" }}
               >
                 {nfts.filter((nft) => nft.status === "Sold").length}
               </h3>
-              <p className="mb-0 text-light ">NFTs Sold</p>
+              <p className="mb-0 text-light text-responsive-sm">NFTs Sold</p>
             </div>
           </div>
-          <div className="col-lg-2 col-md-4 col-6 mb-3">
-            <div className="text-center p-3" style={cardStyles}>
+          <div className="mb-3">
+            <div className="card text-center p-3 h-100" style={cardStyles}>
               <h3
-                className="mb-1 fw-bold"
-                style={{ color: "#28a745", fontSize: "1.4rem" }}
+                className="mb-1 fw-bold text-responsive-lg"
+                style={{ color: "#28a745" }}
               >
                 {(userProfile?.nft_balance || 0).toFixed(3)}
               </h3>
-              <p className="mb-0 text-light">ETH Balance</p>
+              <p className="mb-0 text-light text-responsive-sm">ETH Balance</p>
             </div>
           </div>
           {/* Withdrawal Button Card */}
-          <div className="col-lg-2 col-md-4 col-6 mb-3">
-            <div className="text-center p-3" style={cardStyles}>
+          <div className="mb-3">
+            <div className="card text-center p-3 h-100" style={cardStyles}>
               <button
-                className="btn btn-sm w-100"
+                className="btn btn-enhanced btn-sm w-100"
                 style={buttonSuccessStyles}
                 onClick={() => setShowWithdrawalModal(true)}
                 disabled={
@@ -739,11 +739,22 @@ const buttonSecondaryStyles = {
                 Withdraw
               </button>
               <p
-                className="mb-0 text-light mt-2"
-                style={{ fontSize: "0.8rem" }}
+                className="mb-0 text-light mt-2 text-responsive-sm"
               >
                 Available
               </p>
+            </div>
+          </div>
+          {/* Active Listings Card */}
+          <div className="mb-3">
+            <div className="card text-center p-3 h-100" style={cardStyles}>
+              <h3
+                className="mb-1 fw-bold text-responsive-lg"
+                style={{ color: "white" }}
+              >
+                {nfts.filter((nft) => nft.status === "Listed").length}
+              </h3>
+              <p className="mb-0 text-light text-responsive-sm">Active Listings</p>
             </div>
           </div>
 
@@ -842,30 +853,17 @@ const buttonSecondaryStyles = {
               </div>
             </div>
           )}
-
-          <div className="col-md-3 col-4 mb-3">
-            <div className="text-center p-3" style={cardStyles}>
-              <h3
-                className="mb-1 fw-bold"
-                style={{ color: "white", fontSize: "1.4rem" }}
-              >
-                {nfts.filter((nft) => nft.status === "Listed").length}
-              </h3>
-              <p className="mb-0 text-light ">Active Listings</p>
-            </div>
-          </div>
         </div>
       </div>
 
       {/* NFT Collection */}
-      <div className="container pb-5">
-        <div className="row">
-          <div className="col-12">
-            <div className="d-flex justify-content-between align-items-center mb-4">
-              <h2 className="fw-bold" style={{ color: "white" }}>
-                My NFT Collection
-              </h2>
-              <div className="btn-group" role="group">
+      <div className="profile-container pb-5">
+        <div className="w-100">
+          <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-3">
+            <h2 className="fw-bold text-responsive-lg" style={{ color: "white" }}>
+              My NFT Collection
+            </h2>
+            <div className="btn-group" role="group">
                 <button
                   type="button"
                   className="btn btn-outline-secondary active"
@@ -881,16 +879,16 @@ const buttonSecondaryStyles = {
               </div>
             </div>
 
-            <div className="row">
+            <div className="nft-grid">
               {nfts.length === 0 ? (
-                <div className="col-12 text-center py-5">
+                <div className="text-center py-5" style={{ gridColumn: "1 / -1" }}>
                   <i className="fas fa-images fa-3x text-muted mb-3"></i>
                   <h4 className="text-muted">No NFTs yet</h4>
                   <p className="text-muted">
                     Upload your first NFT to get started!
                   </p>
                   <button
-                    className="btn"
+                    className="btn btn-enhanced"
                     style={buttonPrimaryStyles}
                     onClick={() => setShowUploadModal(true)}
                   >
@@ -899,8 +897,8 @@ const buttonSecondaryStyles = {
                 </div>
               ) : (
                 nfts.map((nft) => (
-                  <div key={nft.id} className="col-lg-3 col-md-4 col-sm-6 mb-4">
-                    <div className="card h-100" style={cardStyles}>
+                  <div key={nft.id} className="mb-4">
+                    <div className="nft-card h-100" style={cardStyles}>
                       <img
                         src={nft.image_url} // Note: it's image_url from database
                         className="card-img-top"
@@ -957,7 +955,6 @@ const buttonSecondaryStyles = {
             </div>
           </div>
         </div>
-      </div>
 
       {/* Edit Profile Modal */}
       {showEditProfileModal && (
