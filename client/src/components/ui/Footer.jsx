@@ -1,5 +1,7 @@
-import react from "react";
+import React from "react";
+import { Link } from 'react-router-dom';
 import './Footer.css'
+
 function Footer() {
   return (
     <footer className="bg-dark text-white pt-5 mt-5 pb-3">
@@ -10,51 +12,51 @@ function Footer() {
             <h5 className="fw-bold">Categories</h5>
             <ul className="list-unstyled">
               <li>
-                <a href="#" className="text-white-50 text-decoration-none">
+                <Link to="/categories/arts" className="text-white-50 text-decoration-none">
                   Arts
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-white-50 text-decoration-none">
+                <Link to="/categories/gaming" className="text-white-50 text-decoration-none">
                   Gaming
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-white-50 text-decoration-none">
+                <Link to="/categories/pfps" className="text-white-50 text-decoration-none">
                   PFPS
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-white-50 text-decoration-none">
+                <Link to="/categories/membership" className="text-white-50 text-decoration-none">
                   Membership
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-white-50 text-decoration-none">
+                <Link to="/categories/photography" className="text-white-50 text-decoration-none">
                   Photography
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-white-50 text-decoration-none">
+                <Link to="/categories/exhibition" className="text-white-50 text-decoration-none">
                   Exhibition
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
 
-          {/* <Company  */}
+          {/* Company  */}
           <div className="col-md-3">
             <h5 className="fw-bold">Company</h5>
             <ul className="list-unstyled">
               <li>
-                <a href="#" className="text-white-50 text-decoration-none">
+                <Link to="/privacy-policy" className="text-white-50 text-decoration-none">
                   Privacy Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-white-50 text-decoration-none">
+                <Link to="/terms-of-service" className="text-white-50 text-decoration-none">
                   Terms of service
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -64,19 +66,19 @@ function Footer() {
             <h5 className="fw-bold">Account</h5>
             <ul className="list-unstyled">
               <li>
-                <a href="#" className="text-white-50 text-decoration-none">
+                <Link to="/account-overview" className="text-white-50 text-decoration-none">
                   Account Overview
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-white-50 text-decoration-none">
+                <Link to="/mint-nft" className="text-white-50 text-decoration-none">
                   Mint Nft
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="text-white-50 text-decoration-none">
+                <Link to="/transactions" className="text-white-50 text-decoration-none">
                   Transaction
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

@@ -17,8 +17,9 @@
     0 25px 50px -12px rgba(0, 0, 0, 0.25),
     0 0 0 1px rgba(255, 255, 255, 0.1);
   border-radius: 24px;
-  z-index: 2;
+  z-index: -1;
   transition: all 0.4s ease;
+  pointer-events: none;
 } 
 
 .trending-slide::before {
@@ -34,9 +35,10 @@
     rgba(236, 72, 153, 0.1) 50%,
     rgba(6, 182, 212, 0.1) 100%
   );
-  z-index: 1;
+  z-index: -1;
   opacity: 0;
   transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
 
@@ -119,35 +121,51 @@
 }
 
 .trending-nft-card {
-    background: white;
-    border-radius: 0 !important;
-    /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); */
-    /* border: 2px solid green; */
+    background: linear-gradient(145deg, #ffffff, #f8fafc);
+    border-radius: 16px !important;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 
+        0 4px 15px rgba(0, 0, 0, 0.1),
+        0 2px 8px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
     overflow: hidden !important;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     width: 200px;
     height: 280px;
     cursor: pointer;
+    backdrop-filter: blur(10px);
 }
 
 .trending-nft-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    transform: translateY(-12px) scale(1.02);
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.15),
+        0 8px 20px rgba(0, 0, 0, 0.1),
+        0 0 0 1px rgba(255, 255, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(99, 102, 241, 0.2);
 }
 
 .nft-rank {
     position: absolute;
-    top: 8px;
-    left: 8px;
-    background: linear-gradient(135deg, #0f0e0e, #131313);
+    top: 12px;
+    left: 12px;
+    background: linear-gradient(135deg, #1e293b, #334155, #475569);
     color: white;
-    padding: 4px 8px;
-    border-radius: 12px;
+    padding: 6px 12px;
+    border-radius: 20px;
     font-size: 0.75rem;
-    font-weight: 700;
-    z-index: 10;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    font-weight: 800;
+    z-index: 15;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.3),
+        0 2px 4px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    letter-spacing: 0.5px;
+    pointer-events: none;
 }
 
 .nft-image-container {
@@ -155,18 +173,25 @@
     height: 180px;
     position: relative;
     overflow: hidden;
-    
+    border-radius: 16px 16px 0 0;
+    background: linear-gradient(45deg, #f1f5f9, #e2e8f0);
+    z-index: 1;
 }
 
 .nft-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    filter: brightness(1) contrast(1.05) saturate(1.1);
+    position: relative;
+    z-index: 2;
+    display: block;
 }
 
 .trending-nft-card:hover .nft-image {
-    transform: scale(1.1);
+    transform: scale(1.08);
+    filter: brightness(1.1) contrast(1.1) saturate(1.2);
 }
 
 .nft-placeholder {
@@ -185,37 +210,43 @@
 }
 
 .nft-info {
-    padding: 12px;
+    padding: 16px;
     height: 100px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    /* border: thick solid #0f44ad; */
-    border-radius: 0 !important;
+    background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.9) 100%);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(0,0,0,0.05);
+    border-radius: 0 0 16px 16px !important;
 }
 
 .nft-name {
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: #1f2937;
-    margin: 0 0 4px 0;
-    line-height: 1.2;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 6px 0;
+    line-height: 1.3;
     display: -webkit-box;
     -webkit-line-clamp: 1;
     line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    letter-spacing: -0.02em;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .nft-collection {
-    font-size: 0.75rem;
-    color: #6b7280;
-    margin: 0 0 8px 0;
+    font-size: 0.8rem;
+    color: #64748b;
+    margin: 0 0 10px 0;
     display: -webkit-box;
     -webkit-line-clamp: 1;
     line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    font-weight: 500;
+    letter-spacing: 0.02em;
 }
 
 .nft-price,
@@ -234,8 +265,12 @@
 }
 
 .price-value {
-    color: #059669;
-    font-weight: 700;
+    background: linear-gradient(135deg, #059669, #10b981);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 800;
+    text-shadow: 0 1px 2px rgba(5, 150, 105, 0.1);
 }
 
 .sale-value {

@@ -10,6 +10,23 @@ const ProfilePage = lazy(() => import("./components/pages/Profile"));
 const PrivateRoute = lazy(() => import("./privateRoute.jsx"));
 const PFPGridPage = lazy(() => import("./components/nft/PFPGridPage"));
 const AdiminUsers = lazy(() => import("./components/admin/AdminUsers"));
+
+// Category Pages
+const Arts = lazy(() => import("./pages/categories/Arts"));
+const Gaming = lazy(() => import("./pages/categories/Gaming"));
+const PFPS = lazy(() => import("./pages/categories/PFPS"));
+const Membership = lazy(() => import("./pages/categories/Membership"));
+const Photography = lazy(() => import("./pages/categories/Photography"));
+const Exhibition = lazy(() => import("./pages/categories/Exhibition"));
+
+// Company Pages
+const PrivacyPolicy = lazy(() => import("./pages/company/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/company/TermsOfService"));
+
+// Account Pages
+const AccountOverview = lazy(() => import("./pages/account/AccountOverview"));
+const MintNft = lazy(() => import("./pages/account/MintNft"));
+const Transaction = lazy(() => import("./pages/account/Transaction"));
 const Loading = () => (
   <div className="d-flex justify-content-center align-items-center" style={{ height: "100vh" }}>
     <div className="text-center">
@@ -40,6 +57,24 @@ export const App = () => {
                 </PrivateRoute>
               }
             />
+            
+            {/* Category Routes */}
+            <Route path="/categories/arts" element={<Arts />} />
+            <Route path="/categories/gaming" element={<Gaming />} />
+            <Route path="/categories/pfps" element={<PFPS />} />
+            <Route path="/categories/membership" element={<Membership />} />
+            <Route path="/categories/photography" element={<Photography />} />
+            <Route path="/categories/exhibition" element={<Exhibition />} />
+            
+            {/* Company Routes */}
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />
+            
+            {/* Account Routes */}
+            <Route path="/account-overview" element={<AccountOverview />} />
+            <Route path="/mint-nft" element={<MintNft />} />
+            <Route path="/transactions" element={<Transaction />} />
+            
             {/* Add a catch-all route for 404s */}
             <Route path="*" element={
               <div className="d-flex justify-content-center align-items-center" style={{ height: "100vh" }}>
