@@ -117,29 +117,83 @@ function ProfilePage() {
   };
   // ended
 
+  // const loadUserProfile = async () => {
+  //   try {
+  //     console.log("Loading user profile for ID:", currentUser.id);
+
+  //     const { data, error } = await supabase
+  //       .from("profiles")
+  //       .select("*")
+  //       .eq("id", currentUser.id)
+  //       .single();
+
+  //     console.log("Profile data loaded:", data);
+  //     console.log("Profile load error:", error);
+
+  //     if (error) throw error;
+  //     setUserProfile(data);
+  //     // Set canUpload based on database value
+  //     setCanUpload(data.can_upload || false);
+  //     setIsAdmin(data.admin_role || false);
+  //   } catch (err) {
+  //     console.error("Error loading profile:", err);
+  //     setError("Failed to load profile.");
+  //   }
+  // };
   const loadUserProfile = async () => {
     try {
       console.log("Loading user profile for ID:", currentUser.id);
 
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", currentUser.id)
         .single();
+        
+
+      // If profile doesn't exist, create it
+      if (error?.code === 'PGRST116') { // Not found error
+        console.log("Profile not found, creating new one...");
+
+        const { data: newProfile, error: createError } = await supabase
+          .from("profiles")
+          .insert([
+            {
+              id: currentUser.id,
+              username: currentUser.email?.split('@')[0] || 'user',
+              email: currentUser.email,
+              name: currentUser.user_metadata?.name || '',
+              bio: "",
+              location: "",
+              website: "",
+              twitter: "",
+              instagram: "",
+              avatar: null,
+              cover_image: null,
+              nft_balance: 0,
+              can_upload: false,
+              admin_role: false,
+            },
+          ])
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        data = newProfile;
+      } else if (error) {
+        throw error;
+      }
 
       console.log("Profile data loaded:", data);
-      console.log("Profile load error:", error);
-
-      if (error) throw error;
       setUserProfile(data);
-      // Set canUpload based on database value
       setCanUpload(data.can_upload || false);
       setIsAdmin(data.admin_role || false);
     } catch (err) {
       console.error("Error loading profile:", err);
-      setError("Failed to load profile.");
+      setError("Failed to load profile. Please refresh the page.");
     }
   };
+
 
   const loadUserNfts = async () => {
     try {
@@ -341,53 +395,85 @@ function ProfilePage() {
     setShowEditProfileModal(true);
   };
   // Styles
+  
+
+
   const buttonSuccessStyles = {
-    backgroundColor: "#28a745",
-    borderColor: "#28a745",
-    color: "#ffffff",
-  };
+  background: "rgba(40, 167, 69, 0.35)",  // transparent green
+  backdropFilter: "blur(10px)",
+  WebkitBackdropFilter: "blur(10px)",
+  border: "1px solid rgba(255, 255, 255, 0.4)",
+  color: "#ffffff",
+  borderRadius: "10px",
+  transition: "all 0.3s ease",
+};
 
-  const profileStyles = {
-    backgroundColor: "#f8f9fa",
-    minHeight: "100vh",
-    fontFamily: "Inter, serif",
-  };
+const profileStyles = {
+ background: `linear-gradient(135deg,
+  #0f172a 0%,    
+  #1e293b 30%,  
+  #334155 65%,   
+  #64748b 100%   
+)`,
+  backgroundSize: "300% 300%",
+  animation: "gradientFlow 8s ease infinite",
+  minHeight: "100vh",
+  fontFamily: "Inter, serif",
+};
 
-  const headerStyles = {
-    background: "linear-gradient(135deg, #2c3e50 0%, #34495e 100%)",
-    color: "#ecf0f1",
-    minHeight: "300px",
-    position: "relative",
-  };
 
-  const cardStyles = {
-    backgroundColor: "black",
-    border: "1px solid #dee2e6",
-    borderRadius: "12px",
-    // boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-    color: "white !important",
-    transition: "transform 0.2s ease-in-out",
-    // padding: '10px'
-  };
-  const cardStyle = {
-    backgroundColor: "white",
-    border: "1px solid #dee2e6",
-    borderRadius: "12px",
-    // boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-    color: "white !important",
-    transition: "transform 0.2s ease-in-out",
-  };
-  const buttonPrimaryStyles = {
-    backgroundColor: "black",
-    borderColor: "black",
-    color: "#ffffff",
-  };
 
-  const buttonSecondaryStyles = {
-    backgroundColor: "#6c757d",
-    borderColor: "#6c757d",
-    color: "#ffffff",
-  };
+const headerStyles = {
+  background: "rgba(255, 255, 255, 0.1)",
+  backdropFilter: "blur(12px)",
+  WebkitBackdropFilter: "blur(12px)",
+  minHeight: "300px",
+  color: "#ecf0f1",
+  position: "relative",
+  borderBottom: "1px solid rgba(255, 255, 255, 0.3)",
+};
+
+const cardStyles = {
+  background: "rgba(0, 0, 0, 0.35)",
+  backdropFilter: "blur(15px)",
+  WebkitBackdropFilter: "blur(15px)",
+  borderRadius: "15px",
+  border: "1px solid rgba(255, 255, 255, 0.25)",
+  boxShadow: "0 4px 30px rgba(0, 0, 0, 0.1)",
+  color: "white",
+  transition: "transform 0.2s ease-in-out",
+};
+
+const cardStyle = {
+  background: "rgba(255, 255, 255, 0.25)",
+  backdropFilter: "blur(15px)",
+  WebkitBackdropFilter: "blur(15px)",
+  borderRadius: "15px",
+  border: "1px solid rgba(255, 255, 255, 0.25)",
+  boxShadow: "0 4px 30px rgba(0, 0, 0, 0.1)",
+  color: "#fff",
+  transition: "transform 0.2s ease-in-out",
+};
+
+const buttonPrimaryStyles = {
+  background: "rgba(0, 0, 0, 0.35)",
+  backdropFilter: "blur(10px)",
+  WebkitBackdropFilter: "blur(10px)",
+  border: "1px solid rgba(255, 255, 255, 0.4)",
+  color: "#ffffff",
+  borderRadius: "10px",
+  transition: "all 0.3s ease",
+};
+
+const buttonSecondaryStyles = {
+  background: "rgba(108, 117, 125, 0.35)",
+  backdropFilter: "blur(10px)",
+  WebkitBackdropFilter: "blur(10px)",
+  border: "1px solid rgba(255, 255, 255, 0.4)",
+  color: "#ffffff",
+  borderRadius: "10px",
+  transition: "all 0.3s ease",
+};
 
   if (!currentUser) {
     return (
@@ -776,7 +862,7 @@ function ProfilePage() {
         <div className="row">
           <div className="col-12">
             <div className="d-flex justify-content-between align-items-center mb-4">
-              <h2 className="fw-bold" style={{ color: "black" }}>
+              <h2 className="fw-bold" style={{ color: "white" }}>
                 My NFT Collection
               </h2>
               <div className="btn-group" role="group">
@@ -847,13 +933,12 @@ function ProfilePage() {
                             {nft.price} ETH
                           </span>
                           <span
-                            className={`badge ${
-                              nft.status === "Listed"
+                            className={`badge ${nft.status === "Listed"
                                 ? "bg-success"
                                 : nft.status === "Sold"
-                                ? "bg-primary"
-                                : "bg-secondary"
-                            }`}
+                                  ? "bg-primary"
+                                  : "bg-secondary"
+                              }`}
                           >
                             {nft.status}
                           </span>
@@ -1297,9 +1382,8 @@ function ProfilePage() {
                   {/* <br /> */}
                   <strong>Upload Permission:</strong>
                   <span
-                    className={`badge ms-2 ${
-                      userProfile?.can_upload ? "bg-success" : "bg-danger"
-                    }`}
+                    className={`badge ms-2 ${userProfile?.can_upload ? "bg-success" : "bg-danger"
+                      }`}
                   >
                     {userProfile?.can_upload ? "Granted" : "Denied"}
                   </span>
