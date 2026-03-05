@@ -34,7 +34,6 @@ function NftStatusTable() {
       .from('nfts')
       .update({ status: newStatus })
       .eq('id', id);
-
     if (error) {
       console.error('Error updating status:', error);
     } else {

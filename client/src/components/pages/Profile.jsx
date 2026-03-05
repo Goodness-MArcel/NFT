@@ -1389,17 +1389,10 @@ const buttonSecondaryStyles = {
                 <div className="mb-4">
                   <i className="fas fa-lock fa-3x text-warning mb-3"></i>
                   <h4 style={{ color: "#2c3e50" }}>Upload Restricted</h4>
-                  <p className="text-muted mb-4">
+                  <p className="text-black mb-4">
                     Hello! You need to make a payment before you can upload your
                     NFT.
                   </p>
-
-                  <div className="alert alert-info" role="alert">
-                    <i className="fas fa-info-circle me-2"></i>
-                    <strong>Premium Feature:</strong> NFT uploads require a
-                    one-time payment of 0.1 ETH.
-                  </div>
-
                   <div className="pricing-info mb-4">
                     <div className="card border">
                       <div className="card-body">
